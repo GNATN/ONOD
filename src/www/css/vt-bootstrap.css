@@ -1,0 +1,193 @@
+/* Sticky footer styles---------------------- */
+
+html, body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by it's height */
+  margin: 0 auto -60px;
+}
+
+.tab-content>.tab-pane, .pill-content>.pill-pane  {
+  margin-top: 50px;
+}
+
+.form-horizontal .control-label {
+  float: left;
+  width: 110px; /* changed from 160px to 120px */
+  padding-top: 5px;
+  text-align: right;
+}
+
+.form-horizontal .controls {
+  *display: inline-block;
+  *padding-left: 20px;
+  margin-left: 130px;  /* changed from 180px to 140px */
+  *margin-left: 0;
+}
+
+.control-group {
+  margin-bottom: 10px;
+}
+
+#ast_reg {
+  height: 5px;
+}
+
+/* Set the fixed height of the footer here */
+#push, #footer {
+  height: 50px;
+}
+#footer {
+  background-color: #f5f5f5;
+}
+
+/* Lastly, apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+  #footer {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+#config
+{
+  margin-top: 1.5px;
+}
+
+#oNav, #oPlace 
+{
+	float: left;
+}
+
+#oNav
+{
+  margin-left: 0px;
+  width: 220px;
+  position: fixed;
+}
+
+#oPlace
+{
+  margin-left: 220px;
+	overflow: auto;
+  position: relative;
+  width: calc(100% - 220px);
+  background-color: rgba(0,0,0,0.17);
+}
+
+#side > li > a
+{
+  padding-left: 40px;
+}
+
+#menu
+{
+  margin-right: 65px;
+}
+
+.homeA, .homeB
+{
+  float: left;
+}
+
+.homeA
+{
+  margin-left: 0px;
+ 	position: relative;
+  width: 220px;
+}
+
+.homeA > a 
+{
+  margin-left: 20px !important;
+}
+
+.homeB
+{
+  position: absolute;
+  bottom: -5px;
+  right: 35px;
+}
+
+.homeC
+{
+  margin-left:220px;
+  min-width: 400px;
+}
+
+.homeTxt 
+{
+	display: block;
+	float: left;
+	font-size: 10px;
+	font-weight: 200;
+	color: #ff9900;
+	text-shadow: 0 1px 0 #ffffff;
+}
+
+.homeTxt:hover, .homeTxt:focus 
+{
+  text-decoration: none;
+  color: #ff9900;
+}
+
+.sideNav
+{
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.sideNav > ul > li 
+{   
+  width: 100%;  
+} 
+
+.noMargin
+{
+  margin: 0 0 0 0 !important;
+}
+
+.dropdown-menu > li > a
+{
+  padding-left: 30px;
+}
+
+.dropdown-menu > .dropdown-submenu > ul
+{
+  margin-right: 100%;
+}
+
+.sideMenu > a:after
+{
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
+  margin-right: 112%;
+  margin-top: -14px;
+  border-left-color: #000;
+}
+
+#wScan
+{
+  height: 100%;
+}
+
+.wScan
+{
+  width: 100%;
+  min-width: 640px;
+  height: 50%;
+  overflow: auto;
+}

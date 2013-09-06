@@ -1,0 +1,119 @@
+#!/usr/bin/haserl
+<% 
+	UPTIME=`uptime`
+	TZ=`cat /etc/TZ`
+	echo -en "content-type: text/html\r\n\r\n"
+%>
+
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Open Node Observation Deck</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="/css/bootstrapSwitch.css" rel="stylesheet" media="screen">
+		<link href="/css/vt-bootstrap.css" rel="stylesheet" media="screen">
+	</head>
+
+	<body>
+		<div id="wrap">
+
+			<div class="container-fluid">
+				<div class="row-fluid">
+					<div class="navbar navbar-fixed-top" style="min-width: 600px">
+						<div class="navbar-inner">
+			 					
+		 					<div class="homeA">
+		 						<a class="brand" href="vt_index.html">VT Configuration</a>
+		 						<div class="homeB"><a class="homeTxt" href="vt_index.html">Home</a></div>
+		 					</div>
+		 					
+		 					<div class="homeC">
+			 					<ul id="tab" class="nav">
+						            <li class="active"><a href="#" data-toggle="tab">Open Node Observation Deck</a></li>
+			    				</ul>
+		    				</div>
+			    				
+		    				<ul class="nav pull-right">
+		    					<li>
+		    						<div id="menu" class="btn-group">
+										<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="config" href="#"><i class="icon-cog"></i></a>
+										
+										<ul class="dropdown-menu pull-right">
+											<li class="dropdown-submenu pull-left sideMenu">
+												<a href="#"><i class="icon-wrench"></i> Advanced</a>
+												<ul class="dropdown-menu">
+													<li value=1><a href="#">Start Scan</a></li>
+													<li value=2><a href="#">Stop Scan</a></li>
+													<li value=3><a href="#">Modify Scan Interval</a></li>
+													<li value=4><a href="#">Reset Data</a></li>
+												</ul>
+											</li>
+											<li class="dropdown-submenu pull-left sideMenu">
+												<a href="#"><i class="icon-pencil"></i> Custom</a>
+												<ul class="dropdown-menu">
+													<li value=11><a href="#">Choose Node...</a></li>
+												</ul>
+											</li>
+   											<li class="dropdown-submenu pull-left sideMenu">
+   												<a href="#"><i class="icon-th-list"></i> Sort By</a>
+   												<ul class="dropdown-menu">
+   													<li value=21><a href="#">Node Hostname</a></li>
+   													<li value=22><a href="#">Node Mac Addr</a></li>
+   												</ul>
+   											</li>
+										</ul>
+									</div>
+								</li>
+							</ul>
+							
+		    			</div>
+		    		</div>
+		    	</div>
+	    	</div>
+
+			<div class="container-fluid" style="padding: 0px; margin-top: 41px;">
+				<div class="row-fluid">
+					<div class="tab-pane active" id="status">
+			    		<div id="oNav" class="navbar navbar-fixed-left">
+							<div class="navbar-inner sideNav">
+								<ul id="side" class="nav noMargin">
+									<li value=0 class="active"><a href="#" data-toggle="side">Node Neighborhood</a></li>
+									<li value=1><a href="#" data-toggle="side">Node Wireless S.N.R</a></li>
+									<li value=2><a href="#" data-toggle="side">Node Wireless Scan</a></li>
+									<li value=3><a href="#" data-toggle="side">Node Wireless RSSI</a></li>
+									<li value=4><a href="#" data-toggle="side">Node Link Quality</a></li>
+									<li value=5><a href="#" data-toggle="side">Node Packet Loss</a></li>
+									<li value=6><a href="#" data-toggle="side">Node Latency</a></li>
+								</ul>
+							</div>
+						</div>
+					
+						<div id="oPlace"></div>
+					</div>
+				</div>
+			</div>
+
+		    <div id="footer">
+		  		<div class="container">
+	    			<div class="muted credit">Time: <%= $UPTIME %> <br> Time Zone: <%= $TZ %></div>
+	            </div>     
+		  	</div>
+
+	  	</div>
+
+		<!-- Load javascript -->
+		<script type="text/javascript" src="/lib/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="/lib/jquery.validate.min.js"></script>
+		<script type="text/javascript" src="/lib/jquery.form.min.js"></script>
+		<script type="text/javascript" src="/lib/bootstrap.min.js"></script>
+		<script type="text/javascript" src="/lib/bootstrapSwitch.js"></script>
+
+		<script type="text/javascript" src="/lib/raphael.js"></script>
+		<script type="text/javascript" src="/lib/g.raphael-min.js"></script>
+		<script type="text/javascript" src="/lib/g.line-min.js"></script>
+		<script type="text/javascript" src="/lib/ONOD-lib.js"></script>
+	</body>
+</html>
