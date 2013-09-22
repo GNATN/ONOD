@@ -19,87 +19,139 @@
 
 	<body>
 		<div id="wrap">
+			<div class="container">
+				<div class="row">
+					<div class="navbar navbar-default navbar-fixed-top" style="min-width: 600px" role="navigation">
 
-			<div class="container-fluid">
-				<div class="row-fluid">
-					<div class="navbar navbar-fixed-top" style="min-width: 600px">
-						<div class="navbar-inner">
-			 					
+			 			<div class="navbar-header">
 		 					<div class="homeA">
-		 						<a class="brand" href="vt_index.html">VT Configuration</a>
+		 						<a class="navbar-brand" href="vt_index.html">VT Configuration</a>
 		 						<div class="homeB"><a class="homeTxt" href="vt_index.html">Home</a></div>
 		 					</div>
-		 					
-		 					<div class="homeC">
-			 					<ul id="tab" class="nav">
-						            <li class="active"><a href="#" data-toggle="tab">Open Node Observation Deck</a></li>
+		 				</div>
+
+		 				<div class="collapse navbar-collapse navbar-ex1-collapse">	
+		 					<div>
+			 					<ul id="tab" class="nav navbar-nav navbar-left">
+						            <li class="disabled"><a href="#Network" data-toggle="tab">Network</a></li>
+						            <li class="disabled"><a href="#Voice" data-toggle="tab">Voice</a></li>
+						            <li class="active">
+						            		<a href="#" data-toggle="tab">Open Node Observation Deck</a>
+						            		<div class="statusTag"><a class="homeTxt" href="vt_status.html">Status</a></div>
+						            </li>
 			    				</ul>
 		    				</div>
-			    				
-		    				<ul class="nav pull-right">
-		    					<li>
-		    						<div id="menu" class="btn-group">
-										<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="config" href="#"><i class="icon-cog"></i></a>
-										
-										<ul class="dropdown-menu pull-right">
-											<li class="dropdown-submenu pull-left sideMenu">
-												<a href="#"><i class="icon-wrench"></i> Advanced</a>
-												<ul class="dropdown-menu">
-													<li value=1><a href="#">Start Scan</a></li>
-													<li value=2><a href="#">Stop Scan</a></li>
-													<li value=3><a href="#">Modify Scan Interval</a></li>
-													<li value=4><a href="#">Reset Data</a></li>
-												</ul>
-											</li>
-											<li class="dropdown-submenu pull-left sideMenu">
-												<a href="#"><i class="icon-pencil"></i> Custom</a>
-												<ul class="dropdown-menu">
-													<li value=11><a href="#">Choose Node...</a></li>
-												</ul>
-											</li>
-   											<li class="dropdown-submenu pull-left sideMenu">
-   												<a href="#"><i class="icon-th-list"></i> Sort By</a>
-   												<ul class="dropdown-menu">
-   													<li value=21><a href="#">Node Hostname</a></li>
-   													<li value=22><a href="#">Node Mac Addr</a></li>
-   												</ul>
-   											</li>
+		    				<div id="menu">
+		    					<ul class="nav navbar-nav navbar-right">
+	    							<li>
+			    						<div class="switch hide" data-on-label="Adv" data-off-label="Basic" data-off="success" data-on="warning">
+						        	    	<input type="checkbox" id="chk1" >
+						            	</div>
+					        		</li>
+		    						<li class="btn-group">
+										<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="config" href="#" style="color:#000000"><span class="glyphicon glyphicon-cog"></span></button>
+										<ul id="cogMenu" class="dropdown-menu pull-right">
+											<li class="dropdown-header icon-wrench">Logger</li>
+											<li value=1><a href="#"><span class="glyphicon glyphicon-play"></span> Start Scan</a></li>
+											<li value=2><a href="#"><i class="glyphicon glyphicon-stop"></i> Stop Scan</a></li>
+											<li class="divider"></li>
+
+											<li id="Advanced" class="dropdown-header icon-wrench">Advanced</li>
+											<li value=3><a href="#"><i class="glyphicon glyphicon-trash"></i> Reset Data</a></li>
+											<li value=4><a href="#"><i class="glyphicon glyphicon-edit"></i> Logger Settings</a></li>
+											<li class="divider"></li>
+											<li id="Custom" class="dropdown-header icon-pencil">Custom</li>
+											<li value=5><a href="#">Choose Node...</a></li>
 										</ul>
-									</div>
-								</li>
-							</ul>
-							
+									</li>
+								</ul>
+							</div>
 		    			</div>
 		    		</div>
 		    	</div>
 	    	</div>
 
-			<div class="container-fluid" style="padding: 0px; margin-top: 41px;">
-				<div class="row-fluid">
+			<div class="container" style="padding: 0px; margin-top: 41px;">
+				<div class="row">
 					<div class="tab-pane active" id="status">
-			    		<div id="oNav" class="navbar navbar-fixed-left">
-							<div class="navbar-inner sideNav">
-								<ul id="side" class="nav noMargin">
+			    		<div id="oNav" class="navbar navbar-default navbar-fixed-left">
+							<div class="collapse navbar-collapse navbar-ex1-collapse sideNav">
+								<ul id="side" class="nav navbar-nav">
 									<li value=0 class="active"><a href="#" data-toggle="side">Node Neighborhood</a></li>
-									<li value=1><a href="#" data-toggle="side">Node Wireless S.N.R</a></li>
-									<li value=2><a href="#" data-toggle="side">Node Wireless Scan</a></li>
-									<li value=3><a href="#" data-toggle="side">Node Wireless RSSI</a></li>
-									<li value=4><a href="#" data-toggle="side">Node Link Quality</a></li>
-									<li value=5><a href="#" data-toggle="side">Node Packet Loss</a></li>
-									<li value=6><a href="#" data-toggle="side">Node Latency</a></li>
+									<li value=1><a href="#" data-toggle="side">Node Batman Score</a></li>
+									<li value=2><a href="#" data-toggle="side">Node Wireless S.N.R</a></li>
+									<li value=3><a href="#" data-toggle="side">Node Wireless Scan</a></li>
+									<li value=4><a href="#" data-toggle="side">Node Wireless RSSI</a></li>
 								</ul>
 							</div>
 						</div>
-					
-						<div id="oPlace"></div>
+
+				      	<!-- Modal -->
+                 		<div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+               	  			<div class="modal-dialog">
+								<div class="modal-content">
+		                        	<div class="modal-header">
+		                        		<h3 id="myModalLabel">Logger Settings</h3>
+		                        	</div>
+		                        	<div class="modal-body">
+		                           		<form id="loggerForm" class="form-horizontal">
+		                            		<fieldset>
+				                              	<div class="control-group">
+				                                    <label class="control-label" for="rTime">Run Time</label>
+				                                    <div class="controls">
+				                                       <input type="text" id="rTime" name= "rTime" value="300">
+				                                    </div>
+				                                    <label class="control-label" for="sInterv">Scan Interval</label>
+				                                    <div class="controls">
+				                                       <input type="text" id="sInterv" name="sInterv" value="5">
+				                                    </div>
+				                                    <label class="control-label" for="lLen">Log Length</label>
+				                                    <div class="controls">
+				                                    	<input type="text" id="lLen" name="lLen" value="25">
+				                                    </div>
+				                                    <div class="controls">
+				                                      	<label class="checkbox inline" for="checkboxes-settings-cL">
+				                                        	<input type="checkbox" name="checkboxes-settings" id="checkboxes-settings-cL" value="clearLog"> Clear Log
+				                                      	</label>
+				                                      	<label class="checkbox inline" for="checkboxes-settings-rF">
+				                                         	<input type="checkbox" name="checkboxes-settings" id="checkboxes-settings-rF" value="runForever"> Run Forever
+				                                      	</label>
+				                                    </div>
+				                              	</div>
+				                                <div class="control-group">
+				                                    <legend>Data types</legend>
+				                                    <div class="controls">
+				                                    	<label class="checkbox" for="checkboxes-dataType-0">
+				                                          	<input type="checkbox" name="checkboxes-dataType" id="checkboxes-dataType-0" value="batman" checked> Batman List
+				                                    	</label>
+				                                    	<label class="checkbox" for="checkboxes-dataType-1">
+				                                          	<input type="checkbox" name="checkboxes-dataType" id="checkboxes-dataType-1" value="assoc" checked> Associate List
+				                                    	</label>
+				                                    	<label class="checkbox" for="checkboxes-dataType-2">
+				                                        	<input type="checkbox" name="checkboxes-dataType" id="checkboxes-dataType-2" value="scan" checked> Wi-Fi Scan
+				                                    	</label>
+				                                    </div>
+				                              	</div>
+		                              		</fieldset>
+		                          		</form>
+		                            </div>
+		                            <div id="logSetFooter" class="modal-footer">
+		                            	<button class="btn" value="0" aria-hidden="true">Close</button>
+		                            	<button class="btn btn-primary settingBut" value="1" type="submit">Save settings</button>
+		                            	<button class="btn btn-danger settingBut" value="2" type="submit">Save &amp; Apply</button>
+		                            </div>
+	               				</div>
+            				</div>
+            			</div>
+						<div id="oPlace"></div>	
 					</div>
 				</div>
 			</div>
 
 		    <div id="footer">
 		  		<div class="container">
-	    			<div class="muted credit">Time: <%= $UPTIME %> <br> Time Zone: <%= $TZ %></div>
-	            </div>     
+	    			<div id="fContent" class="muted credit">Time: <%= $UPTIME %> <br> Time Zone: <%= $TZ %></div>
+	        	</div>     
 		  	</div>
 
 	  	</div>
@@ -107,13 +159,12 @@
 		<!-- Load javascript -->
 		<script type="text/javascript" src="/lib/jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="/lib/jquery.validate.min.js"></script>
-		<script type="text/javascript" src="/lib/jquery.form.min.js"></script>
 		<script type="text/javascript" src="/lib/bootstrap.min.js"></script>
 		<script type="text/javascript" src="/lib/bootstrapSwitch.js"></script>
-
-		<script type="text/javascript" src="/lib/raphael.js"></script>
+		<script type="text/javascript" src="/lib/raphael-min.js"></script>
 		<script type="text/javascript" src="/lib/g.raphael-min.js"></script>
 		<script type="text/javascript" src="/lib/g.line-min.js"></script>
+		<script type="text/javascript" src="/lib/g.bar-min.js"></script>
 		<script type="text/javascript" src="/lib/ONOD-lib.js"></script>
 	</body>
 </html>

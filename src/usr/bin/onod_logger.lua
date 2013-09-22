@@ -8,10 +8,11 @@ local gen_log_file = "/www/log/%s_log.json"
 local gen_log_tmp = "/www/log/%s_log.tmp"
 local pid_file = "/var/run/dmtf_scan.pid"
 
-local json = require ("dkjson")
 local iw = require "iwinfo"
 local t = assert(iw.type(dev1), "Not a wireless device")
 --local getparam = cmdline.getparam
+
+local max_indiv_file_size = 1024
     
 function readBatOrginators() 
 	local a = {
@@ -74,20 +75,57 @@ function createLogItem(item_type)
 	return item
 end
 
-function mergeLogs( log, oldLog, max_lines )
-	local diff 
-	local i = 1
-	if(#oldLog.items >= max_lines) then
-		diff =  max_lines
-		i = 2
-		else diff = #oldLog.items
+function makeAssocEntry(item)
+	local assocString = "{\"time\":\"" .. item.time .. "\",\"data\":{"
+
+	for key, data in pairs(item.aList) do
+		assocString = assocString .. string.format("\"%s\":{\"noise\":%d,\"signal\":%d},", key, data.noise, data.signal)
 	end
 
-	while i <= diff do
-		table.insert(log.items, oldLog.items[i])
-		i = i + 1
-	end 
-	return log
+	assocString = assocString:sub(0, assocString:len() - 1)
+
+	assocString = assocString .. "}}"
+
+	return assocString
+end
+
+function makeScanEntry(item)
+	local scanString = "{\"time\":\"" .. item.time .. "\",\"wScan\":["
+
+	for key, data in pairs(item.wScan) do
+		scanString = scanString .. string.format("{\"signal\":%d,\"quality_max\":%d,\"ssid\":\"%s\",\"encryption\":\"%s\",\"channel\":%d,\"bssid\":\"%s\",\"mode\":\"%s\",\"quality\":%d},",
+			data.signal, data.quality_max, data.ssid, data.encryption.description, data.channel, data.bssid, data.mode, data.quality)
+	end
+
+	scanString = scanString:sub(0, scanString:len() - 1)
+	scanString = scanString .. "]}"
+
+	return scanString
+end
+
+function makeBatmanEntry(item)
+	local batString = "{\"time\":\"" .. item.time .. "\",\"originNodes\":["
+
+	for key, data in pairs(item.originNodes) do
+		batString = batString .. string.format("[%q,%.3f,%d],", data[1], data[2], data[3])
+	end
+
+	batString = batString:sub(0, batString:len() - 1)
+	batString = batString .. "]}"
+
+	return batString
+end
+
+function createLogEntry(item_type, item)
+	local retString = ""
+	if item_type == "assoc" then
+		retString = makeAssocEntry(item)
+	elseif item_type == "scan" then
+		retString = makeScanEntry(item)
+	elseif item_type == "batman" then
+		retString = makeBatmanEntry(item)
+	end
+	return retString
 end
 
 function runRoutine(seconds, run_time, max_lines, reset_file, types)
@@ -101,14 +139,9 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 	local i = 0
 	while i < run_time do
 		for p, x in pairs(types) do
-			--print(x)
 			local log_file = string.format(gen_log_file, x)
 			local log_tmp = string.format(gen_log_tmp, x)
 			
-			local log = {
-				items = {}
-			}
-
 			local fi = io.open(log_file, "r")
 
 			if fi == nil then --Create the file if it doesn't exist
@@ -118,24 +151,57 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 				resets[x] = 1
 			end
 
-			local fo = assert(io.open(log_tmp, "w"), "Cannot open temporary file")
-			local oldLog, pos, err = json.decode(fi:read("*all"), 1, nil)
-			
-			if(resets[x] == 0 and oldLog ~= nil) then
-				log = mergeLogs(log, oldLog, max_lines)
-			else 
-				resets[x] = 0
-			end 
+			local line_count = 0
 
-			table.insert(log.items, createLogItem(x))
-			
-			local jsq = json.encode(log, { indent = true })
-			fo:write(jsq)
+			for i in io.lines(log_file) do
+				line_count = line_count + 1
+			end
+
+			line_count = line_count - 2
+
+			local item = createLogItem(x)
+			local entry = createLogEntry(x, item)
+
+			local fo = assert(io.open(log_tmp, "w"), "Cannot open temporary file")
+
+			local line_write = fi:read("*l")
+
+			fo:write("{\"items\":[\n")
+
+			if(resets[x] == 1) then --Reset file
+				fo:write(entry .. "\n")
+				resets[x] = 0
+			else
+				local i = 0
+
+				while i < (line_count - max_lines + 1) do --Trim off excess lines
+					line_write = fi:read("*l")
+					i = i + 1
+				end
+
+				i = 1
+
+				while i > 0 do --Write lines to file
+					line_write = fi:read("*l")
+
+					if(line_write:sub(line_write:len()) ~= ",") then --Last line
+						line_write = line_write .. ","
+						i = 0
+					end
+
+					fo:write(line_write .. "\n")
+				end
+
+				fo:write(entry .. "\n") --Add new entry
+			end
+
+			fo:write("]}")
+
 			fo:close()
-			
+			fi:close()
+
 			os.remove(log_file)
 			os.rename(log_tmp, log_file)
-			
 		end
 		os.execute(string.format("sleep %s", seconds))
 		i = i +1

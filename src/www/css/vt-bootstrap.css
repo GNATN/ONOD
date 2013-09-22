@@ -10,10 +10,13 @@ html, body {
   min-height: 100%;
   height: auto !important;
   height: 100%;
+  overflow: hidden;
   /* Negative indent footer by it's height */
   margin: 0 auto -60px;
 }
-
+.container {
+  max-width: 100% !important;
+}
 .tab-content>.tab-pane, .pill-content>.pill-pane  {
   margin-top: 50px;
 }
@@ -58,13 +61,9 @@ html, body {
   }
 }
 
-#config
-{
-  margin-top: 1.5px;
-}
-
 #oNav, #oPlace 
 {
+
 	float: left;
 }
 
@@ -73,6 +72,7 @@ html, body {
   margin-left: 0px;
   width: 220px;
   position: fixed;
+  border-radius: 0px;
 }
 
 #oPlace
@@ -80,8 +80,8 @@ html, body {
   margin-left: 220px;
 	overflow: auto;
   position: relative;
-  width: calc(100% - 220px);
-  background-color: rgba(0,0,0,0.17);
+  width: calc(100% - 235px);
+  background-color: #e7e7e7;
 }
 
 #side > li > a
@@ -91,6 +91,7 @@ html, body {
 
 #menu
 {
+  margin-top: 3px;
   margin-right: 65px;
 }
 
@@ -108,20 +109,19 @@ html, body {
 
 .homeA > a 
 {
-  margin-left: 20px !important;
+  margin-left: 10px !important;
 }
 
 .homeB
 {
   position: absolute;
-  bottom: -5px;
-  right: 35px;
+  bottom: -1px;
+  right: 62.5px;
 }
 
 .homeC
 {
   margin-left:220px;
-  min-width: 400px;
 }
 
 .homeTxt 
@@ -131,13 +131,19 @@ html, body {
 	font-size: 10px;
 	font-weight: 200;
 	color: #ff9900;
-	text-shadow: 0 1px 0 #ffffff;
 }
 
 .homeTxt:hover, .homeTxt:focus 
 {
   text-decoration: none;
   color: #ff9900;
+}
+
+.statusTag
+{
+  position: absolute;
+  bottom: -1px;
+  right: 15px;
 }
 
 .sideNav
@@ -156,14 +162,14 @@ html, body {
   margin: 0 0 0 0 !important;
 }
 
-.dropdown-menu > li > a
-{
-  padding-left: 30px;
-}
-
-.dropdown-menu > .dropdown-submenu > ul
+.dropdown-submenu > ul
 {
   margin-right: 100%;
+}
+
+.sideMenu > a
+{
+  padding-left: 30px !important;
 }
 
 .sideMenu > a:after
@@ -190,4 +196,9 @@ html, body {
   min-width: 640px;
   height: 50%;
   overflow: auto;
+}
+
+#fContent {
+    margin-left: 190px;
+
 }
