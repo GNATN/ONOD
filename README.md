@@ -45,26 +45,26 @@ With this feature you will be able to configure the logger that is running on th
 This build also includes a feature that allow the node's name to be dynamically updated based on the node's mac address, allowing easy reading for any user. 
 ```JSON
 {
-"a2:18:6b:0d:7b:c7": {hName: "TP-4", iface: "bat0"},
-"f8:1a:67:90:fb:70": {hName: "TP-4", iface: "wlan0"},
-"fa:1a:67:90:fb:71": {hName: "TP-4", iface: "wlan0-1"},
-"f8:1a:67:90:fb:6f": {hName: "TP-4", iface: "eth0"},
-"f8:1a:67:90:fb:71": {hName: "TP-4", iface: "eth1"},
-"f8:1a:67:de:2b:5e": {hName: "Node-4", iface: "wlan0"},
-"f8:1a:67:de:2b:5d": {hName: "Node-4", iface: "eth0"},
-"fa:1a:67:de:2b:5e": {hName: "Node-4", iface: "wlan0-1"},
-"36:3c:37:f3:02:a8": {hName: "Node-4", iface: "bat0"},
-"f8:1a:67:de:2b:5f": {hName: "Node-4", iface: "eth1"},
-"f8:1a:67:7c:d3:9d": {hName: "Node-3", iface: "eth1"},
-"62:9a:91:d5:3b:00": {hName: "Node-3", iface: "bat0"},
-"fa:1a:67:7c:d3:9c": {hName: "Node-3", iface: "wlan0-1"},
-"f8:1a:67:7c:d3:9b": {hName: "Node-3", iface: "eth0"},
-"f8:1a:67:7c:d3:9c": {hName: "Node-3", iface: "wlan0"},
-"32:20:be:a9:19:a8": {hName: "Node-2", iface: "bat0"},
-"fa:1a:67:90:ed:c8": {hName: "Node-2", iface: "wlan0-1"},
-"f8:1a:67:90:ed:c7": {hName: "Node-2", iface: "eth0"},
-"f8:1a:67:90:ed:c9": {hName: "Node-2", iface: "eth1"},
-"f8:1a:67:90:ed:c8": {hName: "Node-2", iface: "wlan0"}
+"a2:18:6b:0d:7b:c7": {"hName": "TP-4", "iface": "bat0"},
+"f8:1a:67:90:fb:70": {"hName": "TP-4", "iface": "wlan0"},
+"fa:1a:67:90:fb:71": {"hName": "TP-4", "iface": "wlan0-1"},
+"f8:1a:67:90:fb:6f": {"hName": "TP-4", "iface": "eth0"},
+"f8:1a:67:90:fb:71": {"hName": "TP-4", "iface": "eth1"},
+"f8:1a:67:de:2b:5e": {"hName": "Node-4", "iface": "wlan0"},
+"f8:1a:67:de:2b:5d": {"hName": "Node-4", "iface": "eth0"},
+"fa:1a:67:de:2b:5e": {"hName": "Node-4", "iface": "wlan0-1"},
+"36:3c:37:f3:02:a8": {"hName": "Node-4", "iface": "bat0"},
+"f8:1a:67:de:2b:5f": {"hName": "Node-4", "iface": "eth1"},
+"f8:1a:67:7c:d3:9d": {"hName": "Node-3", "iface": "eth1"},
+"62:9a:91:d5:3b:00": {"hName": "Node-3", "iface": "bat0"},
+"fa:1a:67:7c:d3:9c": {"hName": "Node-3", "iface": "wlan0-1"},
+"f8:1a:67:7c:d3:9b": {"hName": "Node-3", "iface": "eth0"},
+"f8:1a:67:7c:d3:9c": {"hName": "Node-3", "iface": "wlan0"},
+"32:20:be:a9:19:a8": {"hName": "Node-2", "iface": "bat0"},
+"fa:1a:67:90:ed:c8": {"hName": "Node-2", "iface": "wlan0-1"},
+"f8:1a:67:90:ed:c7": {"hName": "Node-2", "iface": "eth0"},
+"f8:1a:67:90:ed:c9": {"hName": "Node-2", "iface": "eth1"},
+"f8:1a:67:90:ed:c8": {"hName": "Node-2", "iface": "wlan0"}
 }
 ```
 - [x] **Announcer**
