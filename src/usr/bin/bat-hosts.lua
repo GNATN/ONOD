@@ -139,7 +139,7 @@ local function write_bat_hosts_json(rows)
       -- Get the hostname and the interface name from the name given
       local hName, iface = split_value[2]:match("([^_]*)_(%S*)")
   
-      local json_row = '"'..split_value[1]..'": {hName: "'..hName..'", iface: "'..iface..'"}'
+      local json_row = '"'..split_value[1]..'": {\"hName\": "'..hName..'", \"iface\": "'..iface..'"}'
 
       -- Check if it's the last row to make sure not to add the , 
       if i == table.getn(rows) and j == table.getn(split_rows) then
@@ -204,12 +204,18 @@ function receive_announce()
 
   local announce_string = "{\"hosts\":["
 
+  local has_hosts = 0
+
   for data in io.popen("alfred -r " .. announce_id):lines() do
+    has_hosts = 1
     local ipaddr, hostname = data:match("ip%:(%d+%.%d+%.%d+%.%d+)|host%:([^%\"]*)")
     announce_string = announce_string .. string.format("\n{\"ipaddr\":%q,\"hostname\":%q},", ipaddr, hostname)
   end
 
-  announce_string = announce_string:sub(0, announce_string:len() - 1)
+  if has_hosts == 1 then
+    announce_string = announce_string:sub(0, announce_string:len() - 1)
+  end
+  
   announce_string = announce_string .. "\n]}"
   
   announce_file:write(announce_string)

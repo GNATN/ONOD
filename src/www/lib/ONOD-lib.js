@@ -10,23 +10,33 @@ function getItem (fromObj, key) {
     return current;
 }
 
-function channelData (newData, index) {
-	var cData = {}, cMax = 12;
+function channelData (newData, index, lineG) {
+	lineG = lineG === undefined ? false : lineG;
+	var cData = {count: {}, aData: {}}, cMax = 12;
 	$.each(newData[index].data, function () {
 		var key = this.channel;
-		if (cData[key]) {
-			cData[key]++;
+		if (cData.count[key]) {
+			cData.count[key]++;
+			cData.aData[key][this.bssid] = {ssid: this.ssid, signal: this.signal};
 		} else {
-			cData[key] = 1;
+			cData.count[key] = 1;
+			cData.aData[key] = {};
+			cData.aData[key][this.bssid] = {ssid: this.ssid, signal: this.signal};
 			if (key > cMax) cMax = key;
 		}
 	});
 
-	for (var i = 1; i < cMax; i++) {
-		if (!cData[i]) cData[i] = 0;
+	cData.total = 0;
+	for (var i = 1; i <= cMax; i++) {
+		if (!cData.count[i]) cData.count[i] = 0;
+		else cData.total += cData.count[i];
 	}
 
-	return cData;
+	if (lineG) {
+		return cData;
+	} else {
+		return cData.count;
+	}
 }
 
 
@@ -42,7 +52,7 @@ function Lua (sleepTime, runTime, maxLn, dataTypes, resetLog) {
 	this.runTime = runTime === undefined ? 0 : runTime;
 	this.maxLn = maxLn === undefined ? 25 : maxLn;
 	this.dataTypes = dataTypes === undefined ? ["assoc","batman","scan"] : dataTypes;
-	this.resetLog = resetLog == undefined ? resetLog : 0
+	this.resetLog = resetLog == undefined ? resetLog : 0;
 }
 
 Lua.prototype.start = function (reset) {
@@ -83,6 +93,7 @@ Lua.prototype.processDataTypes = function(dataArr) {
 	console.log(str);
 	return str;
 };
+
 Lua.prototype.updateLogSet = function(sleepTime, runTime, maxLn, dataTypes, resetLog) {
 	if(!(sleepTime === undefined))
 		this.sleepTime = sleepTime;
@@ -108,8 +119,23 @@ function Dispatcher (refList, retrivClass, mSecs) {
 	this.refList = refList;
 	this.rClass = retrivClass === undefined ? new JSON() : retrivClass;
 	this.mSecs = mSecs === undefined ? 5000 : mSecs;
-	this.aRef = {tID: 0, ref: this.refList[0]};
+	this.aRef = this.refList[0];
 	this.blockFlg = false;
+	try
+	{	
+		if(this.blockFlg) throw "Dispatcher Blocked";
+		this.blockFlg = true;
+		if(this.aRef) {
+			this.getData(true);
+			this.interv = this.intervalUpdate(this.mSecs);
+		} else throw "Err: ref is null";
+		return 1;
+	}
+	catch(err)
+	{
+		console.log(err);
+		return null;
+	}
 }
 
 /**
@@ -119,10 +145,20 @@ function Dispatcher (refList, retrivClass, mSecs) {
  *		-> ref = ref includes an ID and a URL of where to find the log File. 
  *		-> mSecs = Interval in seconds between data re-poll (Client-side) (Default: 5 seconds)
  **/
-Dispatcher.prototype.intervalUpdate = function (mSecs, ref) {
+Dispatcher.prototype.intervalUpdate = function (mSecs) {
 	this.stopInterv();
 	var self = this;
-	return setInterval(function() {self.rClass.fetchNewData(self, ref)}, mSecs);
+	return setInterval(function() {
+		try
+		{	
+			if(self.blockFlg) throw "Dispatcher Blocked";
+			self.blockFlg = true;
+			self.getData()}
+		catch(err)
+		{
+			console.log(err);
+			return null;
+		}}, mSecs);
 };
 
 /**
@@ -132,15 +168,8 @@ Dispatcher.prototype.intervalUpdate = function (mSecs, ref) {
  **/
 Dispatcher.prototype.updateTimeout = function(mSecs) {
 	this.mSecs = mSecs === undefined ? 5000 : mSecs;
-	if(this.aRef.ref) 
-		this.interv = this.intervalUpdate(this.mSecs, this.aRef);
-	else console.log("Ref is null, can not Start.");
-};
-
-Dispatcher.prototype.startInterv = function() {
-	clearInterval(this.interv);
-	if(this.aRef.ref) 
-		this.interv = this.intervalUpdate(this.mSecs, this.aRef);
+	if(this.aRef) 
+		this.interv = this.intervalUpdate(this.mSecs);
 	else console.log("Ref is null, can not Start.");
 };
 
@@ -158,16 +187,38 @@ Dispatcher.prototype.disUnblock = function() {
  *		-> id = Changes the active log file that will be pulled from the server by the id
  **/
 Dispatcher.prototype.setActive = function(id) {
-	var tempRef = {tID: id, ref: this.refList[id]};
-	if(tempRef.ref) {
-		if(this.aRef.ref) 
-			this.aRef.ref.oGrp.removeGroup();
-		this.aRef = {tID: id, ref: this.refList[id]};
-		this.rClass.fetchNewData(this, this.aRef, true);
-		this.interv = this.intervalUpdate(this.mSecs, this.aRef);
-	} else return null;
-	return 1;
+	var tempRef = this.refList[id];
+	try
+	{	
+		if(this.blockFlg) throw "Dispatcher Blocked";
+		this.blockFlg = true;
+		if(tempRef) {
+			if(this.aRef) 
+				this.aRef.oGrp.removeGroup();
+			this.aRef = this.refList[id];
+			this.getData(true);
+			this.interv = this.intervalUpdate(this.mSecs);
+		} else throw "Err: ref is null";
+		return 1;
+	}
+	catch(err)
+	{
+		console.log(err);
+		return null;
+	}
 };
+
+Dispatcher.prototype.getData = function(fUpd) {
+	this.rClass.startFetch(this, this.aRef, fUpd);
+};
+
+Dispatcher.prototype.startInterv = function() {
+	clearInterval(this.interv);
+	if(this.aRef) 
+		this.interv = this.intervalUpdate(this.mSecs);
+	else console.log("Ref is null, can not Start.");
+};
+
 
 /**
  * ONOD Dispatcher Class Stop Interval callback Function
@@ -193,17 +244,27 @@ Dispatcher.prototype.addRef = function(ref) {
 
 Dispatcher.prototype.forceUpdate = function () {
 	clearInterval(this.interv);
-	this.aRef.ref.oGrp.removeGroup();
-	this.rClass.fetchNewData(this, this.aRef, true);
-	this.interv = this.intervalUpdate(this.mSecs, this.aRef, this.rClass);
+	try
+	{	
+		if(this.blockFlg) throw "Dispatcher Blocked";
+		this.blockFlg = true;
+		if(this.aRef) 
+			this.aRef.oGrp.removeGroup();
+		this.getData(true);
+		this.interv = this.intervalUpdate(this.mSecs);
+	}
+	catch(err)
+	{
+		console.log(err);
+	}
 };
 
 
 /**
  * ONOD JSON Interface Class
  **/
-function JSON () {
-	this.prevLogs = [];
+function JSON (storage) {
+	this.logStorage = storage;
 }
 
 /**
@@ -212,30 +273,63 @@ function JSON () {
  *		-> ref = ref includes an ID and a URL of where to find the log File. 
  *		-> fUpd = Flag that when set to true will force a redraw and poll of that tabs information (if not set, defaults to false) 
  */
-JSON.prototype.fetchNewData = function (oDisp, aRef, fUpd) {
-	var self = this;
-	oDisp.disBlock();
+JSON.prototype.getLogRequests = function(aRef, fUpd) {
+	var self = this, dObj = [];
+	if(Object.prototype.toString.call(aRef.url) === '[object Array]') {
+		$.each(aRef.url, function (key, element) {
+			dObj.push(self.fetchNewData(element, fUpd));
+		});
+		return dObj;
+	} else {
+		dObj.push(self.fetchNewData(aRef.url, fUpd));
+		return dObj;
+	}
+};
+
+JSON.prototype.startFetch = function(oDisp, aRef, fUpd) {
+	
+	var self = this; self.aRef = aRef; self.oDisp = oDisp;
+	//var processData = $.when(self.rClass.fetchNewData(self, self.aRef, fUpd));
+	var fetchData = $.when.apply($, this.getLogRequests(aRef, fUpd));
+
+	fetchData.done(function () {
+		function processFetch (url, data, jqXHR, fUpd) {
+			if(jqXHR.statusText == "OK") {
+				self.updateLog(url, data);
+				self.processData(self.oDisp, self.aRef, data);
+			} else if(jqXHR.statusText == "Not Modified" && fUpd) {
+				self.processData(self.oDisp, self.aRef, self.getLog(url));
+			} else self.oDisp.disUnblock();
+		}
+
+		if(Object.prototype.toString.call(arguments[0]) === '[object Array]') {
+			$.each(arguments, function (key, element) {
+				processFetch(this[0], this[1], this[2], this[3]);
+			});
+		} else processFetch(arguments[0], arguments[1], arguments[2], arguments[3]);
+	});
+
+	fetchData.fail(function () {
+		self.oDisp.disUnblock();
+	});
+};
+
+JSON.prototype.fetchNewData = function (url, fUpd) {
+	var self = this, getJSON = $.Deferred();
 	if (fUpd === undefined) fUpd = false;
 	
 	$.ajax({
-		url: aRef.ref.url,
+		url: url,
 		type: 'GET',
 		dataType: 'json',
 		ifModified:true,
 		success: function (data, status, jqXHR) {
-			if(jqXHR.statusText == "OK") {
-				self.updateLog(aRef.ref.id, data);
-				aRef.ref.oGrp.updateGroup(self.processJSON(aRef.tID, data));
-			} else if(jqXHR.statusText == "Not Modified" && fUpd) {
-				aRef.ref.oGrp.updateGroup(self.processJSON(aRef.tID, self.getLog(aRef.ref.id)));
-			}
-			oDisp.disUnblock();
+			getJSON.resolve(url, data, jqXHR, fUpd);
 		}, 
 		error: function(jqXHR, ajaxOptions, thrownError) {
 			if(jqXHR.status != 404)
 				console.log(jqXHR.status + ": " + jqXHR.statusText + ", " + jqXHR.responseText);
-			oDisp.stopInterv();
-			oDisp.disUnblock();
+			getJSON.reject();
 		},
 		beforeSend: setHeader
 	});
@@ -243,30 +337,81 @@ JSON.prototype.fetchNewData = function (oDisp, aRef, fUpd) {
 	function setHeader(xhr) {
 		xhr.setRequestHeader("If-Modified-Since");
     }
+
+    return getJSON;
 }
 
-JSON.prototype.getLog = function(id) {
-	var newData = null;
-	$.each(this.prevLogs, function () {
-		if (this.id === id) 
-			newData = this.data;
-	});
-	return newData;
-};
-
-JSON.prototype.updateLog = function (id, data) {
-	function findById(source, id) {
-		for (var i = 0; i < source.length; i++) {
-			if (source[i].id === id) {
-				return i;
-			}
-		}
-		return null;
+JSON.prototype.processData = function(oDisp, aRef, data) {
+	function dProcess (oGrp, tID, data) {
+		oGrp.updateGroup(self.processJSON(tID, data));
+		d.resolve();
 	}
 
-	var index = findById(this.prevLogs, id);
-	if (index == null) this.prevLogs.push({id: id, data: data});
-	else this.prevLogs[index].data = data;
+	var self = this, d = $.Deferred();
+
+	d.done(function () {
+		self.oDisp.disUnblock();
+	})
+
+	if(aRef.oGrp !== null) {
+		dProcess(aRef.oGrp, aRef.oGrp.tID, data);
+	} else d.resolve();
+};
+
+JSON.prototype.getLog = function(url) {
+	var id = this.hashCode(url);
+	if(this.logStorage[id] == undefined) {
+		return null;
+	} else return this.logStorage[id].data;
+};
+
+JSON.prototype.hashCode = function(url) {
+	/*
+	function hashFunction () {
+        char  = url.charCodeAt(i);
+	    hash  = ((hash<<5)-hash)+char;
+	    hash |= 0; // Convert to 32bit integer
+	
+	    if (++i < l) {
+	    	setTimeout(hashFunction, 0);
+	    }
+    }
+    
+	if (url.length == 0) 
+		return hash;
+	else {
+		var hash = 0, i, l = url.length, char;
+		setTimeout(hashFunction, 0)
+	}
+	return hash;
+	*/
+	var hash = 0, i, char;
+    if (url.length == 0) return hash;
+    for (i = 0, l = url.length; i < l; i++) {
+        char  = url.charCodeAt(i);
+        hash  = ((hash<<5)-hash)+char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
+JSON.prototype.addLog = function(url, data) {
+	var hashCode, flag;
+	hashCode = this.hashCode(url);
+	flag = this.logStorage[hashCode] === undefined ? true : false;
+
+	if (flag) {
+		this.logStorage[hashCode] = {hashCode: hashCode, data: data};
+	} else {
+		console.log("HashCode Clash!!!");
+	}
+};
+
+JSON.prototype.updateLog = function (url, data) {
+
+	var obj = this.getLog(url);
+	if (obj == null) this.addLog(url, data);
+	else obj.data = data;
 };
 
 JSON.prototype.processJSON = function (jID, jData) {
@@ -330,8 +475,30 @@ JSON.prototype.processJSON = function (jID, jData) {
 		return dataSeries;
 	}
 
+	function RSSIConvert (log) {
+		var dataSeries = {};
+		$.each(log.items, function(key) {
+			var date = this.time.split(/(?:\s+)/g);
+			var time = {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
+						
+			$.each(this.data, function (key) {
+				var flag = dataSeries[key] === undefined ? true : false;
+
+				if (flag) {
+					dataSeries[key] = {mac: key, time: [time], data: [this.signal - this.noise]};
+				} else {
+					dataSeries[key].time.push(time);
+					dataSeries[key].data.push(this.signal - this.noise);
+				}
+			});
+		});
+		return dataSeries;
+	}
+
 	var newData;
 	switch (jID) {
+		case 0:
+			break;
 		case 1:
 			newData = bScoreConvert(jData);
 			break;
@@ -342,6 +509,10 @@ JSON.prototype.processJSON = function (jID, jData) {
 
 		case 3:
 			newData = wScanConvert(jData);
+			break;
+
+		case 4:
+			newData = RSSIConvert(jData);
 			break;
 
 		default:
@@ -365,6 +536,8 @@ function oGroup (cObj, flag, tID) {
 oGroup.prototype.updateGroup = function (newData) {
 	function processGraph () {
 		switch (self.tID) {
+			case 0: 
+			break;
 			case 1:
 				if (self.cObj.gObj[i]) {
 					self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);				
@@ -392,6 +565,20 @@ oGroup.prototype.updateGroup = function (newData) {
 					self.cObj.gObj.push(gObj);
 				}
 			break;
+
+			case 4: 
+				if (self.cObj.gObj[i]) {
+					self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);				
+				} else {
+					var gColors = ['#3f72bf', '#50e7f7', '#11f4c8'],
+						gHvrTagCfgStr = 'timestamp br L="Recieved Signal Strength Indicator" D=0 br',
+						gObj = new Graph (75, 50 + (self.gSpa * i), 13, newData[dKey[i]].data.length, 120, gColors[i]);
+
+					gObj.setTitles("Node (" + dKey[i] + ")", "Time (HH-MM-SS)", "Score (0 - 255)");
+					gObj.create(self.cObj, newData[dKey[i]], newData[dKey[i]].time, gHvrTagCfgStr);
+					self.cObj.gObj.push(gObj);
+				}
+			break;
 		}
 
 		if (++i < dCount) {
@@ -402,6 +589,43 @@ oGroup.prototype.updateGroup = function (newData) {
 	}
 
 	function processTable () {
+		function processLineColors () {
+			if (self.tObj.gColors === undefined) {
+				self.tObj.gColors = {}, self.tObj.gColors.cArr = [];
+				$.each(cDta.aData, function (channel) {
+					$.each(this, function (bssid) {
+						var newColor = '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
+						self.tObj.gColors[bssid] = newColor;
+						self.tObj.gColors.cArr.push(newColor);
+					});
+				});
+			} else if (self.tObj.gColors.cArr.length !== cDta.total) {
+				$.each(cDta.aData, function (channel) {
+					$.each(this, function (bssid) {
+						if (self.tObj.gColors[bssid] === undefined) {
+							var newColor = '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
+							self.tObj.gColors[bssid] = newColor;
+							self.tObj.gColors.cArr.push(newColor);
+						}
+					});
+				});
+			}
+		}
+
+		function processChannelGraphs () {
+			if (self.tObj.gLine) {
+				processLineColors();
+				self.tObj.gObj.altD = true;
+				self.tObj.gObj.setColor(self.tObj.gColors.cArr);
+				self.tObj.gObj.setTitles("WiFi AP Channel Information", "Channel", "Signal Strength (dBm)");				
+			} else {
+				var gColors = ["#2f69bf", "#a2bf2f", "#bf5a2f", "#bfa22f", "#772fbf", "#bf2f2f", "#00327f", "#667f00", "#7f2600", "#7f6500"];
+				self.tObj.gObj.altD = false;
+				self.tObj.gObj.setColor(gColors);
+				self.tObj.gObj.setTitles("WiFi AP Channel Information", "Channel", "AP #");		
+			}
+		}		
+
 		if (self.tObj) {
 			self.tObj.update(newData);
 		} else {
@@ -410,13 +634,33 @@ oGroup.prototype.updateGroup = function (newData) {
 			tObj.create(tCfg, newData);
 			self.tObj = tObj;
 			
-			var oldCvs = self.cObj.push(self.tObj.cDiv);
-			var gObj = new Graph (50, 50),
-				cDta = channelData(newData, newData.length - 1);
-			gObj.setTitles("WiFi AP Channel Information", "Channel", "AP #");
-			gObj.createBarGraph(self.cObj, cDta);
+			var oldCvs = self.cObj.push(self.tObj.cDiv), 
+				gCols = self.tObj.gLine ? 14 : 11, gObj, cDta, tCol;
+
+			cDta = channelData(newData, newData.length - 1, self.tObj.gLine);
+			gObj = new Graph (50, 50, 10, gCols, -100);
 			self.tObj.gObj = gObj;
 
+			processChannelGraphs();
+
+			if (self.tObj.gLine) {
+				gObj.create(self.cObj, cDta, null, null, self.cObj.pWd * 0.9, self.cObj.pHt * 0.6);
+			} else {
+				gObj.createBarGraph(self.cObj, cDta);
+			}
+
+			gObj.lastIndex = newData.length - 1;
+
+			var gSwitch = gObj.switchGraphBtn(self.tObj.gLine);
+
+			$(gSwitch).on('switch-change', function () {
+				self.tObj.gLine = self.tObj.gLine ? false : true;
+				cDta = channelData(newData, self.tObj.gObj.lastIndex, self.tObj.gLine);
+				processChannelGraphs();
+				self.tObj.gObj.barUpdate(cDta);
+				self.tObj.updateRowColor();
+			});
+			
 			self.cObj.cObj[oldCvs].rObj.canvas.style.display = "none";
 		}
 	}
@@ -441,7 +685,11 @@ oGroup.prototype.updateGroup = function (newData) {
 				processTable();
 			break;
 
-			case 2:
+			case 2: 
+
+			break;
+
+			case 3:
 				processCustom();
 			break;
 		}		 
@@ -542,6 +790,7 @@ Table.prototype.create = function (tConf, newData) {
 			$(this).addClass('active');
 			that.update(newData, this.value);
 			that.gObj.barUpdate(newData, this.value);
+			that.gLine && that.updateRowColor();
 		});
 
 		tLoc.appendChild(nDiv);
@@ -587,6 +836,7 @@ Table.prototype.update = function (newData, newIndex) {
 			$(this).addClass('active');
 			tObj.update(cData.tDta, this.value);
 			tObj.gObj.barUpdate(cData.tDta, this.value);
+			tObj.gLine && tObj.updateRowColor();
 		});
 	} else {
 		var tDest = $(this.oTbl.firstChild.lastChild),
@@ -607,6 +857,20 @@ Table.prototype.update = function (newData, newIndex) {
 
 		tDest.append(tableHTML);
 	}
+};
+
+Table.prototype.updateRowColor = function () {
+	var tRows = $(this.oTbl.firstChild.lastChild).children(), that = this;
+	$.each(tRows, function () {
+		var ssidObj = this.children[1], bssidObj = this.children[2],
+			bssid = bssidObj.innerText,	
+			rowColor = that.gLine ? that.gColors[bssid] : '#000';
+
+		ssidObj.style.fontWeight = that.gLine ? "900" : "normal";
+		bssidObj.style.fontWeight = that.gLine ? "900" : "normal";
+		ssidObj.style.color = rowColor;
+		bssidObj.style.color = rowColor;
+	});
 };
 
 
@@ -793,37 +1057,54 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 		
 		this.createGraphTitles(rData);
 		this.gGrid = rData.rObj.drawGrid(this.xPos + (this.gBdr / 2), this.yPos + (this.gBdr / 2), this.gWd - this.gBdr, this.gHt - this.gBdr, this.gCol, this.gRow);
-		this.gHideBtn = createHideButton(this);
+		if (this.altD === undefined) this.gHideBtn = createHideButton(this);
 	}
 
 	var xAxisTemp = [], xAxis = [], yAxis = []; 
 	for (var i = 0; i < this.gCol; i++) xAxisTemp[i] = i + 1;
-	if (Object.prototype.toString.call(yData.data) === '[object Object]') {
-		for (var i in yData.data) { 
-			yAxis.push(yData.data[i]); 
-			xAxis.push(xAxisTemp); 
-		}
-	} else {
-		yAxis.push(yData.data);
-		xAxis.push(xAxisTemp); 
-	}
-	xAxis.push([0, this.gCol]); yAxis.push([0, this.gMax]);
 
 	var gShd;
-	if (yAxis.length > 2) {
-		gShd = false;
-		if (this.gColor.length < yAxis.length) {
-			this.gColor.pop();
-			for (var i = 0; i < yAxis.length - 2; i++) this.gColor.push('#'+(Math.random() * 0xFFFFFF << 0).toString(16));
-			this.gColor.push('transparent');
-		}
-	} else {
+	if (this.altD) {
+		var that = this;
+		xAxisTemp.push(this.gCol + 1);
+
+		$.each(yData.aData, function (channel) {
+			channel = Number(channel);
+			$.each(this, function (bssid) {
+				yAxis.push([that.gMax, this.signal, that.gMax]);
+				xAxis.push([channel - 1, channel + 1, channel + 3]);				
+			});
+		});
+
 		gShd = true;
+	} else {
+		if (Object.prototype.toString.call(yData.data) === '[object Object]') {
+			for (var i in yData.data) { 
+				yAxis.push(yData.data[i]); 
+				xAxis.push(xAxisTemp); 
+			}
+		} else {
+			yAxis.push(yData.data);
+			xAxis.push(xAxisTemp); 
+		}
+
+		if (yAxis.length > 1) {
+			gShd = false;
+			if (this.gColor.length < yAxis.length + 1) {
+				this.gColor.length = 0;
+				for (var i = 0; i < yAxis.length; i++) this.gColor.push('#'+(Math.random() * 0xFFFFFF << 0).toString(16));
+				this.gColor.push('transparent');
+			}
+		} else {
+			gShd = true;
+		}		
 	}
+	xAxis.push([0, this.gCol]); yAxis.push([0, this.gMax]);	
 
 	var lineGraph = rData.rObj.linechart(this.xPos, this.yPos, this.gWd, this.gHt, xAxis, yAxis, 
 	{ 
 		shade: gShd, 
+		smooth: this.altD ? true : false,
 		colors: this.gColor, 
 		symbol: 'circle', 
 		axis: '0 0 1 1', 
@@ -833,7 +1114,11 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 	});
 
 	for (var i = 0; i < yAxis.length - 1; i++) 
-		lineGraph.symbols[i].attr({r: 4, stroke: this.gColor[i], fill: '#333', "stroke-width": 2});
+		if (this.altD) {
+			lineGraph.symbols[i].attr({fill: 'none', stroke: 'none'});
+		} else {
+			lineGraph.symbols[i].attr({r: 4, stroke: this.gColor[i], fill: '#333', "stroke-width": 2});
+		}
 
 	if (hTagStr !== undefined && Object.prototype.toString.call(hTagStr) === '[object String]') {
 		setHoverTag(this, hTagStr);
@@ -844,11 +1129,21 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 
 	if (xLabel !== undefined && Object.prototype.toString.call(xLabel) === '[object Array]') {
 		var xAxisLabels = lineGraph.axis[0].text.items;
-		for (var i = 1; i < xAxisLabels.length; i++) { if (i - 1 < xLabel.length) { xAxisLabels[i].attr({'text' : xLabel[i - 1].time, transform: "T -15 10"}); xAxisLabels[i].rotate(-40); } else { xAxisLabels[i].attr({'text' : ""}); } }
+		for (var i = 1; i < xAxisLabels.length; i++) { if (i - 1 < xLabel.length) { xAxisLabels[i].attr({'text': xLabel[i - 1].time, transform: "T -15 10"}); xAxisLabels[i].rotate(-40); } else { xAxisLabels[i].attr({'text': ""}); } }
+		xAxisLabels[0].attr({'text': ""});
+	} else if (this.altD) {
+		var xAxisLabels = lineGraph.axis[0].text.items;
+		for (var i = 2; i < xAxisLabels.length - 2; i++) {
+			xAxisLabels[i].attr({'text': i - 1}); 
+		}
 		xAxisLabels[0].attr({'text' : ""});
+		xAxisLabels[1].attr({'text' : ""});
+		xAxisLabels[xAxisLabels.length - 2].attr({'text' : ""});
+		xAxisLabels[xAxisLabels.length - 1].attr({'text' : ""});
 	}
 
 	this.gObj = lineGraph;
+	this.gCvs = rData;
 };
 
 /**
@@ -862,7 +1157,6 @@ Graph.prototype.createBarGraph = function (rData, yData, gWidth, gHeight) {
 	}
 
 	var mouseOff = function () {
-
 		that.tags && that.tags.animate({opacity: 0}, 200, function () {this.remove();});
 	}
 
@@ -872,10 +1166,10 @@ Graph.prototype.createBarGraph = function (rData, yData, gWidth, gHeight) {
 		xLabel.push(key);
 	});
 
-	var gColors = ["#2f69bf", "#a2bf2f", "#bf5a2f", "#bfa22f", "#772fbf", "#bf2f2f", "#00327f", "#667f00", "#7f2600", "#7f6500"];
-	if (yAxis.length > 10) {
-		for (var i = 10; i < yAxis.length; i++)
-			gColors.push(gColors[i % 10]);
+	if (yAxis.length > this.gColor.length) {
+		var curLength = this.gColor.length;
+		for (var i = this.gColor.length; i < yAxis.length; i++)
+			this.gColor.push(this.gColor[i % curLength]);
 	}
 
 	if (!this.gUpd) {
@@ -886,7 +1180,7 @@ Graph.prototype.createBarGraph = function (rData, yData, gWidth, gHeight) {
 
 	var barGraph = rData.rObj.barchart(this.xPos, this.yPos, this.gWd, this.gHt, yAxis, {
 		gutter: this.gBdr,
-		colors: gColors
+		colors: this.gColor
 	});
 
 	barGraph.hover(mouseOn, mouseOff);
@@ -898,23 +1192,64 @@ Graph.prototype.createBarGraph = function (rData, yData, gWidth, gHeight) {
 	this.bTxt.attr({path: line});
 	
 	this.gObj = barGraph;
-	this.gCvs = rData.rObj;
+	this.gCvs = rData;
+};
+
+Graph.prototype.switchGraphBtn = function (aState) {
+	var bLoc = this.gCvs.dDiv,
+		bDiv = document.createElement("div"),
+		bObj = document.createElement("input");
+		bSts = aState === undefined ? false : aState;
+
+	bDiv.className = "switch switch";
+	bDiv.dataset.onLabel = "Line";	  bDiv.dataset.offLabel = "Bar";
+	bDiv.dataset.on = "warning";	  bDiv.dataset.off = "success";
+	bDiv.style.position = "absolute"; bDiv.style.marginLeft = "-" + this.gWd + "px";
+
+	bObj.type = "checkbox";			  bObj.id = "gChk1";
+	bDiv.appendChild(bObj);
+
+	bLoc.appendChild(bDiv);
+	$(bDiv)['bootstrapSwitch']();
+
+	if (bSts) {
+		$(bDiv).children()[0].className = "switch-on";
+	}
+
+	return bDiv;
 };
 
 /**
  * ONOD Graph Class Bar Graph Update Function
  **/
 Graph.prototype.barUpdate = function (newData, index) {
-	this.gUpd = true;
+	var cData;
+	if (!index) {
+		index = this.lastIndex;
+		cData = newData;
+		this.gUpd = false;
+	} else {
+		cData = channelData(newData, index, this.altD);
+		this.gUpd = true;
+	}
 
-	this.gObj.remove();
-	this.gObj.clear();
-	this.gObj.unhover();
-	this.bTxt.remove();
+	this.remove();
+	
+	if (this.altD) {
+		this.create(this.gCvs, cData, null, null, this.gWd, this.gHt);
+	} else {
+		this.createBarGraph(this.gCvs, cData);
+	}
 
-	this.createBarGraph({rObj: this.gCvs}, channelData(newData, index));
-
+	this.lastIndex = index;
 	this.gUpd = false;
+};
+
+Graph.prototype.setColor = function (newColor) {
+	if (newColor) {
+		this.gColor = Object.prototype.toString.call(newColor) === '[object Array]' ? newColor : [newColor];
+		this.gColor.push('transparent');
+	}	
 };
 
 /**
@@ -968,13 +1303,15 @@ Graph.prototype.hide = function () {
  **/
 Graph.prototype.remove = function () {
 	this.tags && this.tags.remove();
-
-	this.gObj.unhoverColumn(); 
-	this.gObj.remove(); 
-	this.gObj.clear();
+	this.bTxt && this.bTxt.remove();
+	//if (this.altD && !this.altD) this.gObj.unhover();
+	this.gObj.unhover && this.gObj.unhover();
+	this.gObj.unhoverColumn && this.gObj.unhoverColumn(); 
+	this.gObj && this.gObj.remove(); 
+	this.gObj && this.gObj.clear();
 	
 	if (!this.gUpd) {
-		if (this.gTtl.tSet)
+		if (this.gTtl.tSet && this.gTtlObjs)
 			for (var i = 0; i < this.gTtlObjs.length; i++) {
 				this.gTtlObjs[i].remove();
 			}				
@@ -1169,7 +1506,9 @@ function oInit () {
  *				cMgX = Amount of horizontal margin space to remove due to navbar (Default: 237px),
  *				cMgY = Amount of vertical margin space to remove due to header/footer (Default: 91px) );
  **/
+ 	var logStorage = {};
 	var oCanvas = new Canvas ();
+	var rClass = new JSON(logStorage);
 	oCanvas.setDim(oCanvas.pHt - 5);
 
 	var oDash = new oGroup (oCanvas, 2, 0)
@@ -1179,15 +1518,23 @@ function oInit () {
 	var oRSSI = new oGroup (oCanvas, 0, 4);
 
 	var refList = {
-		0 : {id: 2, url: "/log/scan_log.json", oGrp: oRSSI},
-		1 : {id: 0, url: "/log/batman_log.json", oGrp: oBat},
-		2 : {id: 1, url: "/log/assoc_log.json", oGrp: oSNR},
-		3 : {id: 2, url: "/log/scan_log.json", oGrp: oWScan},
-		4 : {id: 2, url: "/log/scan_log.json", oGrp: oRSSI}
+		0 : {url: ["/log/batman_log.json", "/log/assoc_log.json"], oGrp: oDash},
+		1 : {url: "/log/batman_log.json", oGrp: oBat},
+		2 : {url: "/log/assoc_log.json", oGrp: oSNR},
+		3 : {url: "/log/scan_log.json", oGrp: oWScan},
+		4 : {url: "/log/assoc_log.json", oGrp: oRSSI}
 	}	
-	
+	var hRef = {
+		0 : {url: "/log/bathosts_log.json", oGrp: null}
+	}
+
+	var anRef = {
+		0 : {url: "/log/announce_log.json", oGrp: null}
+	}
+	var aDisp = new Dispatcher (anRef, new JSON(logStorage), 120000);
+	var hDisp = new Dispatcher (hRef, new JSON(logStorage), 120000);
 	var eventData = {
-		oDisp: new Dispatcher (refList),
+		oDisp: new Dispatcher (refList, new JSON(logStorage), 5000),
 		oLua: new Lua ()
 	}
 
@@ -1208,16 +1555,23 @@ function oInit () {
 	});
 
 	$("#side li").click(eventData, function () {
-		if(eventData.oDisp.blockFlg == true) return;
-		if(eventData.oDisp.setActive(this.value) != null) {
-			$(this.parentElement.children).each(function() { 
-				if ($(this).hasClass('active')) {
-					$(this).removeClass('active');
-				}
-			});
+		self.uiBlockFlg == true;
+		if(!self.uiBlockFlg) {
+			if(eventData.oDisp.setActive(this.value) != null) {
+				$(this.parentElement.children).each(function() { 
+					if ($(this).hasClass('active')) {
+						$(this).removeClass('active');
+					}
+				});
 
-			$(this).addClass('active');
+				$(this).addClass('active');
+			}
 		}
+		function waitTimer () {	
+			self.uiBlockFlg = false;
+		}
+		setTimeout(waitTimer, 50);
+	
 	});
 
 	$("#cogMenu > li").click(eventData, function () { 
@@ -1264,7 +1618,7 @@ function oInit () {
 	});
 
 
-	$("input[name*='checkboxes-settings'").click(eventData, function () {
+	$("input[name*='checkboxes-settings']").click(eventData, function () {
 		if(this.value == "runForever") {
 			if($(this).is(':checked')) 
 				$('#rTime').prop('disabled', true);
@@ -1273,9 +1627,9 @@ function oInit () {
 		}
 	});
 
-	$("input[name*='checkboxes-dataType'").click(eventData, function () {
+	$("input[name*='checkboxes-dataType']").click(eventData, function () {
 		var i = 0;
-		$("input[name*='checkboxes-dataType'").each(function(index, Element) {
+		$("input[name*='checkboxes-dataType']").each(function(index, Element) {
 			if($(this).is(':checked'))
 				i++;
 		});
@@ -1285,7 +1639,7 @@ function oInit () {
 			$('.settingBut').prop('disabled', true);
 	});
 
-	$('#loggerForm').submit(eventData, function() {
+	$("#loggerForm").submit(eventData, function() {
 		
 		function processForm (form) {
 			var formObj = { 
@@ -1295,7 +1649,7 @@ function oInit () {
 				rTime : $('#checkboxes-settings-rF').is(':checked') ? 0 : Number(form.rTime.value),
 				resetLog : $('#checkboxes-settings-cL').is(':checked') ? 1 : 0
 			}
-			$("input[name*='checkboxes-dataType'").each(function(index, Element) {
+			$("input[name*='checkboxes-dataType']").each(function(index, Element) {
 				if($(this).is(':checked'))
 					formObj.dataTypes.push(this.value); 
 			});
