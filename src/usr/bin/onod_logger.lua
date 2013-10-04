@@ -12,8 +12,79 @@ local iw = require "iwinfo"
 local t = assert(iw.type(dev1), "Not a wireless device")
 --local getparam = cmdline.getparam
 
-local max_indiv_file_size = 1024
-    
+local max_pool_size = 408600
+local pool_sizes = {}
+local last_sizes = {}
+local remaining_pool = max_pool_size
+
+function init_pool(files)
+	for p, x in pairs(files) do
+		pool_sizes[x] = max_pool_size / (table.getn(files) * 2) -- Only use half of the pool
+		last_sizes[x] = {}
+		remaining_pool = remaining_pool - pool_sizes[x]
+	end
+end
+
+function shuffle_space()
+	for file, data in pairs(last_sizes) do
+		local avg_total = 0
+		for index, size in pairs(data) do
+			avg_total = avg_total + size
+		end
+		avg_total = avg_total / table.getn(data)
+
+		if avg_total < pool_sizes[file] and data[table.getn(data)] < pool_sizes[file] then
+			local old_size = pool_sizes[file]
+			local new_size = data[table.getn(data)]
+			local diff = old_size - new_size
+			remaining_pool = remaining_pool + diff
+			pool_sizes[file] = pool_sizes[file] - diff
+		end
+	end
+end
+
+function update_last_size(file, new_size)
+	table.insert(last_sizes[file], new_size)
+
+	if table.getn(last_sizes[file]) > 3 then
+		table.remove(last_sizes[file], 1)
+	end
+end
+
+function pool_can_write(file, current, size)
+	print("Can write: "..file.." "..current.." "..size)
+	if (current + size) < pool_sizes[file] then
+		update_last_size(file, (current + size))
+		return 0
+	end
+
+	if remaining_pool < size then
+		shuffle_space()
+	end
+
+	-- If the new line is bigger then the remaining pool 
+	if size > remaining_pool then
+		update_last_size(file, (current + size))
+		return 2
+	end
+
+	-- Or the new file size isn't bigger then 70% of the pool and is not the only file in the pool
+	if (current + size) > (max_pool_size / 10) * 7 and table.getn(pool_sizes) ~= 1 then
+		remaining_pool = remaining_pool + pool_sizes[file]
+		pool_sizes[file] = (max_pool_size / 10) * 7
+		remaining_pool = remaining_pool - pool_sizes[file]
+		return 2
+	end
+
+	-- Recalculate the pool
+	remaining_pool = remaining_pool + pool_sizes[file]
+	pool_sizes[file] = current + size
+	remaining_pool = remaining_pool - pool_sizes[file]
+
+	update_last_size(file, (current + size))
+	return 0
+end
+
 function readBatOrginators() 
 	local a = {
 		originNodes = {}
@@ -136,8 +207,12 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 		resets[x] = reset_file
 	end
 
-	local i = 0
-	while i < run_time do
+	local j = 0
+	while j < run_time do
+		for file, data in pairs(pool_sizes) do
+			print("Before: "..file.." "..data)
+		end
+		print("Before: remaining_pool "..remaining_pool)
 		for p, x in pairs(types) do
 			local log_file = string.format(gen_log_file, x)
 			local log_tmp = string.format(gen_log_tmp, x)
@@ -152,15 +227,26 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 			end
 
 			local line_count = 0
+			local current_size = 0
 
 			for i in io.lines(log_file) do
 				line_count = line_count + 1
+				current_size = current_size + i:len()
 			end
 
 			line_count = line_count - 2
 
 			local item = createLogItem(x)
 			local entry = createLogEntry(x, item)
+
+			local lines_to_trim = pool_can_write(x, current_size, entry:len())
+			if lines_to_trim > 0 then
+				if line_count >= max_lines then
+					line_count = line_count + lines_to_trim -- Trim off a line if the log is too big
+				else
+					line_count = max_lines + lines_to_trim
+				end
+			end
 
 			local fo = assert(io.open(log_tmp, "w"), "Cannot open temporary file")
 
@@ -184,6 +270,8 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 				while i > 0 do --Write lines to file
 					line_write = fi:read("*l")
 
+					if line_write == nil then break end
+
 					if(line_write:sub(line_write:len()) ~= ",") then --Last line
 						line_write = line_write .. ","
 						i = 0
@@ -203,8 +291,12 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 			os.remove(log_file)
 			os.rename(log_tmp, log_file)
 		end
+		for file, data in pairs(pool_sizes) do
+			print("After: "..file.." "..data)
+		end
+		print("After: remaining_pool "..remaining_pool)
 		os.execute(string.format("sleep %s", seconds))
-		i = i +1
+		j = j + 1
 	end
 end
 
@@ -341,6 +433,8 @@ max_lines = tonumber(paras["-l"])
 flag = tonumber(paras["-R"])
 
 item_types = split(paras["-t"], ",") --{"assoc", "scan", "batman"}
+
+init_pool(item_types)
 
 runRoutine(seconds, run_time, max_lines, flag, item_types)
 stop_running()
