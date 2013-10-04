@@ -1,16 +1,18 @@
 function getItem (fromObj, key) {
 	var current = fromObj;
-    for(var i = 0; i < key.length; i++) {
+    for (var i = 0; i < key.length; i++) {
         if(current[key[i]]) {
             current = current[key[i]];
         } else {
             return null;
         }
     }
+
     return current;
 }
 
 function channelData (newData, index, lineG) {
+	index = index === undefined ? newData.length : index;
 	lineG = lineG === undefined ? false : lineG;
 	var cData = {count: {}, aData: {}}, cMax = 12;
 	$.each(newData[index].data, function () {
@@ -28,8 +30,9 @@ function channelData (newData, index, lineG) {
 
 	cData.total = 0;
 	for (var i = 1; i <= cMax; i++) {
+		if (!cData.count[i])  {
 		if (!cData.count[i]) cData.count[i] = 0;
-		else cData.total += cData.count[i];
+		} else cData.total += cData.count[i];
 	}
 
 	if (lineG) {
@@ -79,14 +82,14 @@ Lua.prototype.restart = function (reset) {
 		this.resetLog = 0;
 	} else 
 		reset = reset === undefined ? 0 : reset;
+
 	xhr = new XMLHttpRequest();
 	xhr.open("GET", "/lua/?action=restart&sleep_time=" + this.sleepTime + "&run_time=" + this.runTime + "&max_lines=" + this.maxLn + "&reset_file=" + reset + "&types=" + this.processDataTypes(this.dataTypes));
 	xhr.send();
 };
 
 Lua.prototype.processDataTypes = function(dataArr) {
-	var str;
-	str = dataArr[0];
+	var str = dataArr[0];
 	for (var i = 1; i < dataArr.length; i++) {
 		str = str + "," + dataArr[i];
 	};
@@ -95,15 +98,15 @@ Lua.prototype.processDataTypes = function(dataArr) {
 };
 
 Lua.prototype.updateLogSet = function(sleepTime, runTime, maxLn, dataTypes, resetLog) {
-	if(!(sleepTime === undefined))
+	if (sleepTime !== undefined)
 		this.sleepTime = sleepTime;
-	if(!(runTime === undefined))
+	if (runTime !== undefined)
 		this.runTime = runTime;
-	if(!(maxLn === undefined))
+	if (maxLn !== undefined)
 		this.maxLn = maxLn;
-	if(!(dataTypes === undefined) && dataTypes != null)
+	if (dataTypes !== undefined && dataTypes != null)
 		this.dataTypes = dataTypes;
-	if(!(resetLog === undefined))
+	if (resetLog !== undefined)
 		this.resetLog = resetLog;
 };
 
@@ -121,11 +124,12 @@ function Dispatcher (refList, retrivClass, mSecs) {
 	this.mSecs = mSecs === undefined ? 5000 : mSecs;
 	this.aRef = this.refList[0];
 	this.blockFlg = false;
+	this.hname = window.location.hostname;
 	try
 	{	
-		if(this.blockFlg) throw "Dispatcher Blocked";
+		if (this.blockFlg) throw "Dispatcher Blocked";
 		this.blockFlg = true;
-		if(this.aRef) {
+		if (this.aRef) {
 			this.getData(true);
 			this.interv = this.intervalUpdate(this.mSecs);
 		} else throw "Err: ref is null";
@@ -151,14 +155,15 @@ Dispatcher.prototype.intervalUpdate = function (mSecs) {
 	return setInterval(function() {
 		try
 		{	
-			if(self.blockFlg) throw "Dispatcher Blocked";
+			if (self.blockFlg) throw "Dispatcher Blocked";
 			self.blockFlg = true;
 			self.getData()}
 		catch(err)
 		{
 			console.log(err);
 			return null;
-		}}, mSecs);
+		}
+	}, mSecs);
 };
 
 /**
@@ -168,9 +173,10 @@ Dispatcher.prototype.intervalUpdate = function (mSecs) {
  **/
 Dispatcher.prototype.updateTimeout = function(mSecs) {
 	this.mSecs = mSecs === undefined ? 5000 : mSecs;
-	if(this.aRef) 
+	if (this.aRef) 
 		this.interv = this.intervalUpdate(this.mSecs);
-	else console.log("Ref is null, can not Start.");
+	else 
+		console.log("Ref is null, can not Start.");
 };
 
 Dispatcher.prototype.disBlock = function() {
@@ -190,15 +196,18 @@ Dispatcher.prototype.setActive = function(id) {
 	var tempRef = this.refList[id];
 	try
 	{	
-		if(this.blockFlg) throw "Dispatcher Blocked";
+		if (this.blockFlg) 
+			throw "Dispatcher Blocked";
 		this.blockFlg = true;
-		if(tempRef) {
-			if(this.aRef) 
+		if (tempRef) {
+			if (this.aRef) 
 				this.aRef.oGrp.removeGroup();
 			this.aRef = this.refList[id];
 			this.getData(true);
 			this.interv = this.intervalUpdate(this.mSecs);
-		} else throw "Err: ref is null";
+		} else 
+			throw "Err: ref is null";
+
 		return 1;
 	}
 	catch(err)
@@ -214,11 +223,11 @@ Dispatcher.prototype.getData = function(fUpd) {
 
 Dispatcher.prototype.startInterv = function() {
 	clearInterval(this.interv);
-	if(this.aRef) 
+	if (this.aRef) 
 		this.interv = this.intervalUpdate(this.mSecs);
-	else console.log("Ref is null, can not Start.");
+	else 
+		console.log("Ref is null, can not Start.");
 };
-
 
 /**
  * ONOD Dispatcher Class Stop Interval callback Function
@@ -234,7 +243,7 @@ Dispatcher.prototype.stopInterv = function() {
  * Parameters: 
  *		-> refList = Updates the reference list that the Dispatcher uses to find the url to download the log
  **/
-Dispatcher.prototype.updatateRefList = function(refList) {
+Dispatcher.prototype.updateRefList = function(refList) {
 	this.refList = refList;
 };
 
@@ -243,12 +252,13 @@ Dispatcher.prototype.addRef = function(ref) {
 };
 
 Dispatcher.prototype.forceUpdate = function () {
-	clearInterval(this.interv);
 	try
 	{	
-		if(this.blockFlg) throw "Dispatcher Blocked";
+		if (this.blockFlg) 
+			throw "Dispatcher Blocked";
 		this.blockFlg = true;
-		if(this.aRef) 
+		clearInterval(this.interv);
+		if (this.aRef) 
 			this.aRef.oGrp.removeGroup();
 		this.getData(true);
 		this.interv = this.intervalUpdate(this.mSecs);
@@ -256,6 +266,21 @@ Dispatcher.prototype.forceUpdate = function () {
 	catch(err)
 	{
 		console.log(err);
+	}
+};
+
+Dispatcher.prototype.updateHost = function (hname) {
+	if (this.blockFlg)
+		return false;
+	else {
+		this.blockFlg = true;
+		this.hname = hname;
+		clearInterval(this.interv);
+		if (this.aRef) 
+			this.aRef.oGrp.removeGroup();
+		this.getData(true);
+		this.interv = this.intervalUpdate(this.mSecs);
+		return true;
 	}
 };
 
@@ -273,40 +298,56 @@ function JSON (storage) {
  *		-> ref = ref includes an ID and a URL of where to find the log File. 
  *		-> fUpd = Flag that when set to true will force a redraw and poll of that tabs information (if not set, defaults to false) 
  */
-JSON.prototype.getLogRequests = function(aRef, fUpd) {
+JSON.prototype.getLogRequests = function(hname, aRef, fUpd) {
 	var self = this, dObj = [];
-	if(Object.prototype.toString.call(aRef.url) === '[object Array]') {
+	if (Object.prototype.toString.call(aRef.url) === '[object Array]') {
 		$.each(aRef.url, function (key, element) {
-			dObj.push(self.fetchNewData(element, fUpd));
+			dObj.push(self.fetchNewData(hname, element, fUpd));
 		});
 		return dObj;
 	} else {
-		dObj.push(self.fetchNewData(aRef.url, fUpd));
+		dObj.push(self.fetchNewData(hname, aRef.url, fUpd));
 		return dObj;
 	}
 };
 
 JSON.prototype.startFetch = function(oDisp, aRef, fUpd) {
-	
 	var self = this; self.aRef = aRef; self.oDisp = oDisp;
-	//var processData = $.when(self.rClass.fetchNewData(self, self.aRef, fUpd));
-	var fetchData = $.when.apply($, this.getLogRequests(aRef, fUpd));
+	var fetchData = $.when.apply($, this.getLogRequests(oDisp.hname, aRef, fUpd));
 
 	fetchData.done(function () {
 		function processFetch (url, data, jqXHR, fUpd) {
-			if(jqXHR.statusText == "OK") {
+			if (jqXHR.statusText == "OK") {
 				self.updateLog(url, data);
 				self.processData(self.oDisp, self.aRef, data);
-			} else if(jqXHR.statusText == "Not Modified" && fUpd) {
+			} else if (jqXHR.statusText == "Not Modified" && fUpd) {
 				self.processData(self.oDisp, self.aRef, self.getLog(url));
-			} else self.oDisp.disUnblock();
+			} else 
+				self.oDisp.disUnblock();
 		}
 
-		if(Object.prototype.toString.call(arguments[0]) === '[object Array]') {
-			$.each(arguments, function (key, element) {
-				processFetch(this[0], this[1], this[2], this[3]);
+		function processMFetch (dataArr) {
+			var newData = [], flag = false;
+			$.each(dataArr, function (key, element) {
+				if (this[2].statusText == "OK") {
+					self.updateLog(this[0], this[1]);
+					newData.push(this[1]);
+					flag = true;
+				} else if (this[2].statusText == "Not Modified" && this[3]) {
+					newData.push(self.getLog(this[0]));
+					flag = true;
+				} else 
+					self.oDisp.disUnblock();
 			});
-		} else processFetch(arguments[0], arguments[1], arguments[2], arguments[3]);
+
+			if (flag) 
+				self.processData(self.oDisp, self.aRef, newData);
+		}
+
+		if (Object.prototype.toString.call(arguments[0]) === '[object Array]')
+			processMFetch(arguments);
+		else 
+			processFetch(arguments[0], arguments[1], arguments[2], arguments[3]);
 	});
 
 	fetchData.fail(function () {
@@ -314,7 +355,7 @@ JSON.prototype.startFetch = function(oDisp, aRef, fUpd) {
 	});
 };
 
-JSON.prototype.fetchNewData = function (url, fUpd) {
+JSON.prototype.fetchNewData = function (hname, url, fUpd) {
 	var self = this, getJSON = $.Deferred();
 	if (fUpd === undefined) fUpd = false;
 	
@@ -327,7 +368,7 @@ JSON.prototype.fetchNewData = function (url, fUpd) {
 			getJSON.resolve(url, data, jqXHR, fUpd);
 		}, 
 		error: function(jqXHR, ajaxOptions, thrownError) {
-			if(jqXHR.status != 404)
+			if (jqXHR.status != 404)
 				console.log(jqXHR.status + ": " + jqXHR.statusText + ", " + jqXHR.responseText);
 			getJSON.reject();
 		},
@@ -343,48 +384,37 @@ JSON.prototype.fetchNewData = function (url, fUpd) {
 
 JSON.prototype.processData = function(oDisp, aRef, data) {
 	function dProcess (oGrp, tID, data) {
-		oGrp.updateGroup(self.processJSON(tID, data));
-		d.resolve();
+		self.processJSON(oGrp, tID, data, d2);
 	}
 
-	var self = this, d = $.Deferred();
+	var self = this, d = $.Deferred(), d2 = $.Deferred();
 
+	d2.done(function (oGrp, dataSeries) {
+		oGrp.updateGroup(dataSeries, d, self.getLog("/log/bathosts_log.json"));
+	});
 	d.done(function () {
 		self.oDisp.disUnblock();
 	})
 
-	if(aRef.oGrp !== null) {
+	d.fail(function () {
+		self.oDisp.disUnblock();
+	})
+
+	if (aRef.oGrp !== null) {
 		dProcess(aRef.oGrp, aRef.oGrp.tID, data);
-	} else d.resolve();
+	} else 
+		d.resolve();
 };
 
 JSON.prototype.getLog = function(url) {
 	var id = this.hashCode(url);
-	if(this.logStorage[id] == undefined) {
+	if (this.logStorage[id] == undefined) {
 		return null;
-	} else return this.logStorage[id].data;
+	} else 
+		return this.logStorage[id].data;
 };
 
 JSON.prototype.hashCode = function(url) {
-	/*
-	function hashFunction () {
-        char  = url.charCodeAt(i);
-	    hash  = ((hash<<5)-hash)+char;
-	    hash |= 0; // Convert to 32bit integer
-	
-	    if (++i < l) {
-	    	setTimeout(hashFunction, 0);
-	    }
-    }
-    
-	if (url.length == 0) 
-		return hash;
-	else {
-		var hash = 0, i, l = url.length, char;
-		setTimeout(hashFunction, 0)
-	}
-	return hash;
-	*/
 	var hash = 0, i, char;
     if (url.length == 0) return hash;
     for (i = 0, l = url.length; i < l; i++) {
@@ -400,71 +430,152 @@ JSON.prototype.addLog = function(url, data) {
 	hashCode = this.hashCode(url);
 	flag = this.logStorage[hashCode] === undefined ? true : false;
 
-	if (flag) {
+	if (flag)
 		this.logStorage[hashCode] = {hashCode: hashCode, data: data};
-	} else {
+	else
 		console.log("HashCode Clash!!!");
-	}
 };
 
 JSON.prototype.updateLog = function (url, data) {
-
 	var obj = this.getLog(url);
-	if (obj == null) this.addLog(url, data);
-	else obj.data = data;
+	if (obj == null) 
+		this.addLog(url, data);
+	else 
+		obj.data = data;
 };
 
-JSON.prototype.processJSON = function (jID, jData) {
-	function bScoreConvert (log) {
-		var dataSeries = {};
-		
-		$.each(log.items, function (key) {
-			var date = this.time.split(/(?:\s+)/g);
-			var time = {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
-			
-			$.each(this.originNodes, function () { 
-				var key = this[0], flag = dataSeries[key] === undefined ? true : false;
-
-				if (flag) {
-					dataSeries[key] = {mac: key, time: [time], data: [this[2]], ls: [this[1]]};
-				} else {
-					dataSeries[key].time.push(time);
-					dataSeries[key].data.push(this[2]);
-					dataSeries[key].ls.push(this[1]);					
-				}
-			});
-		});
-		
-		return dataSeries;
+JSON.prototype.processJSON = function (oGrp, jID, jData, d) {
+	function getTime (timestamp) {
+			var date = timestamp.split(/(?:\s+)/g);
+			return {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
 	}
 
-	function aListConvert (log) {
-		var dataSeries = {};
-		
-		$.each(log.items, function (key) {
-			var date = this.time.split(/(?:\s+)/g);
-			var time = {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
-			
-			$.each(this.data, function (key) {
+	function oDashConvert (log) {
+		function mergeData (oldData, newData) {
+			var mergedData = $.extend(true, oldData, newData); 
+			return mergedData;
+		}
+
+		function processLog () {
+			var deferred = $.Deferred();
+
+			if (logEntry.items[0].originNodes !== undefined) {
+				bScoreConvert(logEntry, deferred);
+			} else {
+				var dRSSI = $.Deferred(), dSNR = $.Deferred(), tmp = {};
+				var shDeferred = $.when(dSNR, dRSSI).done(function () {
+					tmp = mergeData(arguments[0], arguments[1]);
+					deferred.resolve(tmp);
+				});
+
+				aListConvert(logEntry, dSNR);
+				RSSIConvert(logEntry, dRSSI);
+			}
+
+			deferred.done(function (pData) {
+				if (++x < dCount) {
+					dataSeries = mergeData(dataSeries, pData);
+					logEntry = log[x];
+					setTimeout(processLog, 0);
+				} else {
+					dataSeries = mergeData(dataSeries, pData);
+					d.resolve(oGrp, dataSeries);
+				}
+			});
+		}
+
+		var dataSeries = {}, logEntry;
+
+		if (log != null) { 
+			var dCount = log.length, x = 0;
+			logEntry = log[x];
+			setTimeout(processLog, 0);
+		} else 
+			d.reject();
+	}
+
+	function bScoreConvert (log, deferred) {
+		function processLog () {
+			function processBSEntry(key, time, bScore, ls) {
 				var flag = dataSeries[key] === undefined ? true : false;
 
 				if (flag) {
-					dataSeries[key] = {mac: key, time: [time], data: {signal: [this.signal], noise: [this.noise]}, snr: [this.signal - this.noise]};
+					dataSeries[key] = {mac: key, time: [time], data: {bScore: [bScore]}, ls: [ls]};
 				} else {
 					dataSeries[key].time.push(time);
-					dataSeries[key].data.signal.push(this.signal);
-					dataSeries[key].data.noise.push(this.noise);
-					dataSeries[key].snr.push(this.signal - this.noise);
+					dataSeries[key].data.bScore.push(bScore);
+					dataSeries[key].ls.push(ls);					
 				}
-			});
-		});
-		
-		return dataSeries;
+			}
+			
+			var time = getTime(logEntry.time);
+			for (var y = 0; y < logEntry.originNodes.length; y++) {
+				var data = logEntry.originNodes[y];
+				processBSEntry(data[0], time, data[2], data[1]);
+			}
+			
+			if (++i < dCount) {
+				logEntry = log.items[i];
+				setTimeout(processLog, 0);
+			} else if(deferred === undefined)
+				d.resolve(oGrp, dataSeries);
+			else {
+				deferred.resolve(dataSeries);
+			}
+		}
+
+		var dataSeries = {};
+		if (log != null) { 
+			var dCount = log.items.length, i = 0;
+			var logEntry = log.items[i];
+			setTimeout(processLog, 0);
+		} else 
+			d.reject();
+	}
+
+	function aListConvert (log, deferred) {
+		function processLog () {
+			function processSNREntry(key, time, signal, noise) {
+				var flag = dataSeries[key] === undefined ? true : false;
+
+				if (flag) {
+					dataSeries[key] = {mac: key, time: [time], data: {signal: [signal], noise: [noise]}, snr: [signal - noise]};
+				} else {
+					dataSeries[key].time.push(time);
+					dataSeries[key].data.signal.push(signal);
+					dataSeries[key].data.noise.push(noise);
+					dataSeries[key].snr.push(signal - noise);
+				}
+			}
+
+			var time = getTime(logEntry.time);
+			for (var key in logEntry.data) {
+				if (logEntry.data.hasOwnProperty(key)) {
+					var dataEntry = logEntry.data[key];
+					processSNREntry(key, time, dataEntry.signal, dataEntry.noise);
+				}
+			}
+			if (++i < dCount) {
+				logEntry = log.items[i];
+				setTimeout(processLog, 0);
+			} else if (deferred === undefined)
+				d.resolve(oGrp, dataSeries);
+			else {
+				deferred.resolve(dataSeries);
+			}
+		}
+		var dataSeries = {};
+
+		if (log != null) { 
+			var dCount = log.items.length, i = 0;
+			var logEntry = log.items[i];
+			setTimeout(processLog, 0);
+		} else 
+			d.reject();
 	}
 
 	function wScanConvert (log) {
 		var dataSeries = [];
-
 		$.each(log.items, function(key) {
 			var date = this.time.split(/(?:\s+)/g);
 			var time = {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
@@ -472,54 +583,87 @@ JSON.prototype.processJSON = function (jID, jData) {
 			dataSeries.push({time: time, data: this.wScan});
 		});
 
-		return dataSeries;
+		d.resolve(oGrp, dataSeries);
 	}
 
-	function RSSIConvert (log) {
-		var dataSeries = {};
-		$.each(log.items, function(key) {
-			var date = this.time.split(/(?:\s+)/g);
-			var time = {day: date[0], month: date[1], date: date[2], time: date[3], year: date[4]};
-						
-			$.each(this.data, function (key) {
+	function RSSIConvert (log, deferred) {
+		function generateRSSI (signal, noise) {
+			return (signal - noise);
+		}
+		
+		function processLog () {
+			function processRSSIEntry(key, time, signal, noise) {
 				var flag = dataSeries[key] === undefined ? true : false;
 
 				if (flag) {
-					dataSeries[key] = {mac: key, time: [time], data: [this.signal - this.noise]};
+					dataSeries[key] = {mac: key, time: [time], data: {rssi: [generateRSSI(signal, noise)]}};
 				} else {
 					dataSeries[key].time.push(time);
-					dataSeries[key].data.push(this.signal - this.noise);
+					dataSeries[key].data.rssi.push(generateRSSI(signal, noise));
 				}
-			});
-		});
-		return dataSeries;
+			}
+
+			var time = getTime(logEntry.time);
+			for (var key in logEntry.data) {
+				if(logEntry.data.hasOwnProperty(key)) {
+					var dataEntry = logEntry.data[key];
+					processRSSIEntry(key, time, dataEntry.signal, dataEntry.noise);
+				}
+			}
+		
+			if (++i < dCount) {
+				logEntry = log.items[i];
+				setTimeout(processLog, 0);
+			} else if(deferred === undefined)
+				d.resolve(oGrp, dataSeries);
+			else {
+				deferred.resolve(dataSeries);
+			}
+		}
+		var dataSeries = {};
+
+		if (log != null) { 
+			var dCount = log.items.length, i = 0;
+			var logEntry = log.items[i];
+			setTimeout(processLog, 0);
+		} else d.reject();
+	}
+
+	function annConvert (log) {
+		d.resolve(oGrp, log);
 	}
 
 	var newData;
 	switch (jID) {
+		case -1: 
+			newData = annConvert(jData);
+		break;
+		
 		case 0:
-			break;
+			newData = oDashConvert(jData);
+		break;
+		
 		case 1:
 			newData = bScoreConvert(jData);
-			break;
+		break;
 
 		case 2:
 			newData = aListConvert(jData);
-			break;
+		break;
 
 		case 3:
 			newData = wScanConvert(jData);
-			break;
+		break;
 
 		case 4:
 			newData = RSSIConvert(jData);
-			break;
+		break;
 
 		default:
 			newData = null;
-			break;
+			d.reject();
+		break;
 	}
-	return newData;
 };
 
 
@@ -533,59 +677,195 @@ function oGroup (cObj, flag, tID) {
 	this.gSpa = this.cObj.pHt * 0.5;
 }
 
-oGroup.prototype.updateGroup = function (newData) {
-	function processGraph () {
-		switch (self.tID) {
-			case 0: 
-			break;
-			case 1:
-				if (self.cObj.gObj[i]) {
-					self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);				
-				} else {
-					var gColors = ['#3f72bf', '#50e7f7', '#11f4c8'],
-						gHvrTagCfgStr = 'timestamp br L="Batman Quality Score" D=0 br P="ls" L="Node Last Seen" sp T="(s)"',
-						gObj = new Graph (75, 50 + (self.gSpa * i), 13, newData[dKey[i]].data.length, 260, gColors[i]);
+oGroup.prototype.updateGroup = function (newData, d, hosts) {
+	function getHostName (mac) {
+		var noHost = "Node";
+		if (!hosts) return noHost;
+		if (hosts[mac] === undefined) 
+		 	return noHost;
+		 else 
+		 	return hosts[mac].hName;
+	}
 
-					gObj.setTitles("Node (" + dKey[i] + ")", "Time (HH-MM-SS)", "Score (0 - 255)");
-					gObj.create(self.cObj, newData[dKey[i]], newData[dKey[i]].time, gHvrTagCfgStr);
-					self.cObj.gObj.push(gObj);
+	function createGraph (cObj, gProps, gColor, gHvrTagCfgStr, gTitleObj, gData) {
+		var gObj = new Graph (gProps.xPos, gProps.yPos, gProps.gRows, gProps.gCols, gProps.gMaxYval, gColor),
+			gDta = gData === undefined ? newData[dKey[i]] : gData;
+		gObj.setTitles(gTitleObj.mTitle, gTitleObj.xTitle, gTitleObj.yTitle);
+		gObj.create(cObj, gDta, gDta.time, gHvrTagCfgStr, gProps.gWidth, gProps.gHeight);
+		return gObj;
+	}
+
+	function processDash() {
+		function createPanelGroup (loc) {
+			divGPanel = document.createElement("div");
+			divGPanLoc = document.getElementById(loc);
+			divGPanel.className = "panel-group";
+			divGPanel.id = "oDash";
+			divGPanLoc.appendChild(divGPanel);
+		}
+
+		function createPanel (loc, heading, id) {
+			var divPanel = document.createElement("div"),
+				divPHeading = document.createElement("div"),
+				h4PTitle = document.createElement("h4"),
+				divPColl = document.createElement("div"),
+				divPBody = document.createElement("div");
+
+			/* create inital Panel div*/
+			divPanel.className = "panel panel-default";
+
+			/* create the Panel headingv*/
+			divPHeading.className = "panel-heading";
+			h4PTitle.className = "panel-title";		        
+			h4PTitle.innerHTML = '<a class="accordion-toggle" data-toggle="collapse" data-parent="#oDash" href="#collapse-' + id + '" value="' + heading + '">' + getHostName(heading.toLowerCase()) + " (" + heading + ")" + '</a>';
+
+			/* create the Panel Body */
+			divPColl.id = "collapse-" + id;
+			divPColl.className = "panel-collapse collapse in";
+			divPBody.className = "panel-body";
+			$(divPBody).css({'position': "relative", 'overflow': "auto", 'padding': 0, 'background-color': "#efefef"});
+
+			/* Bind Everything together */
+			loc.appendChild(divPanel);
+			divPanel.appendChild(divPHeading);
+			divPHeading.appendChild(h4PTitle);
+			divPanel.appendChild(divPColl);
+			divPColl.appendChild(divPBody);
+
+			return {loc: divPBody, coll: divPColl};
+		}
+
+		function processGraphs () {
+			function createGraphs (key) {
+				var gLoc = createPanel(divGPanel, key, i),
+					gCvs = new Canvas (gLoc.loc, null, 400, 254, 0);
+				var	gTitlesA = {mTitle: "Node Batman Quality", xTitle: "Time (HH-MM-SS)", yTitle: "Score (0 - 255)"},
+					gTitlesB = {mTitle: "Node Signal / Noise", xTitle: "Time (HH-MM-SS)", yTitle: "dB (-100 - 0)"},
+					gTitlesC = {mTitle: "RSSI", xTitle: "Time (HH-MM-SS)", yTitle: "dB (0 - 120)"};
+				var	gHvrTagCfgStrA = 'timestamp br L="Batman Quality Score" D=0 br P="ls" L="Node Last Seen" sp T="(s)"',
+					gHvrTagCfgStrB = 'timestamp br L="Signal" D=0 sp L="Noise" D=1 br P="snr" L="SNR" sp T="(dB)"',
+					gHvrTagCfgStrC = 'timestamp br L="Recieved Signal Strength Indicator" D=0 br';
+				var	gDta = newData[key],
+					gDtaA = {data: {bScore: gDta.data.bScore}, mac: key, time: gDta.time, ls: gDta.ls},
+					gDtaB = {data: {signal: gDta.data.signal, noise: gDta.data.noise}, mac: key, time: gDta.time, snr: gDta.snr},
+					gDtaC = {data: {signal: gDta.data.rssi}, mac: key, time: gDta.time, snr: gDta.snr};
+				var	gProps = { xPos: 75, yPos: 50, 
+							   gWidth: null, gHeight: null, gMaxYval: 260,
+							   gRows: 13, gCols: newData[key].time.length
+							 };
+
+				var	gObjA = createGraph(gCvs, gProps, null, gHvrTagCfgStrA, gTitlesA, gDtaA);
+				gProps.yPos = gObjA.yPos + gObjA.gHt * 2; gProps.gRows = 10; gProps.gMaxYval = -100;
+				var	gObjB = createGraph(gCvs, gProps, [null, '#f00'], gHvrTagCfgStrB, gTitlesB, gDtaB);
+				gProps.yPos = gObjB.yPos + gObjA.gHt * 2; gProps.gRows = 12; gProps.gMaxYval = 120;
+				var	gObjC = createGraph(gCvs, gProps, null, gHvrTagCfgStrC, gTitlesC, gDtaC);
+
+				gCvs.gObj = [gObjA, gObjB, gObjC];
+				gCvs.setDim(gObjA.gHt * 2 + gObjB.gHt * 2 + gObjC.gHt * 3);
+
+				if (i > 0) {
+					$(gLoc.coll).attr("class", "panel-collapse collapse");
 				}
-			break;
+
+				self.dCvs[key] = gCvs;
+			}
+		
+			function updateGraphs(key) {
+				var	gDta = newData[key],
+				uDta = [];
+				uDta.push(null);
+				if (gDta.data.bScore !== undefined) {
+					uDta.push({data: {bScore: gDta.data.bScore}, mac: key, time: gDta.time, ls: gDta.ls});
+				} else uDta.push(null); 
+				 
+				if (gDta.data.signal !== undefined) {
+					uDta.push({data: {signal: gDta.data.signal, noise: gDta.data.noise}, mac: key, time: gDta.time, snr: gDta.snr});
+				} else uDta.push(null);
+
+				if (gDta.data.rssi !== undefined) {
+					uDta.push({data: {signal: gDta.data.rssi}, mac: key, time: gDta.time, snr: gDta.snr});
+				} else uDta.push(null);
+
+				var index = 0;
+				for(var c in self.dCvs[key].gObj) {
+					var pClass = self.dCvs[key].dDiv.parentElement.className;
+					if (pClass.substring(pClass.length - 2, pClass.length) === "in" && !this.gHid) {
+						if(uDta[index] == null) continue;
+						self.dCvs[key].gObj[c].update(self.dCvs[key], uDta[index]);
+					}
+					index++;
+				}
+			}
 			
-			case 2:
-				if (self.cObj.gObj[i]) {
-					self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);
-				} else {
-					var gColors = ['#3f72bf', '#50e7f7', '#11f4c8'],
-						gHvrTagCfgStr = 'timestamp br L="Signal" D=0 sp L="Noise" D=1 br P="snr" L="SNR" sp T="(dB)"',
-						gObj = new Graph (75, 50 + (self.gSpa * i), 10, newData[dKey[i]].data.signal.length, -100, [gColors[i], "#f00"]);
-					
-					gObj.setTitles("Node (" + dKey[i] + ")", "Time (HH-MM-SS)", "dB (-100 - 0)");
-					gObj.create(self.cObj, newData[dKey[i]], newData[dKey[i]].time, gHvrTagCfgStr);
-					self.cObj.gObj.push(gObj);
-				}
-			break;
+			/* For each MAC address in the data, create a new panel or update an existing one */
+			if ($('#oDash').find("[value='" + dKey[i] + "']").length) {
+				updateGraphs(dKey[i]);
+			} else {
+				createGraphs(dKey[i]);
+			}
 
-			case 4: 
-				if (self.cObj.gObj[i]) {
-					self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);				
-				} else {
-					var gColors = ['#3f72bf', '#50e7f7', '#11f4c8'],
-						gHvrTagCfgStr = 'timestamp br L="Recieved Signal Strength Indicator" D=0 br',
-						gObj = new Graph (75, 50 + (self.gSpa * i), 13, newData[dKey[i]].data.length, 120, gColors[i]);
 
-					gObj.setTitles("Node (" + dKey[i] + ")", "Time (HH-MM-SS)", "Score (0 - 255)");
-					gObj.create(self.cObj, newData[dKey[i]], newData[dKey[i]].time, gHvrTagCfgStr);
-					self.cObj.gObj.push(gObj);
-				}
-			break;
+			if (++i < dCount) 
+				setTimeout(processGraphs, 0);
+			else 
+				d.resolve();
+		}
+
+		if (self.dCvs === undefined) self.dCvs = {};
+
+		/* Test if there is an existing Panel Group, if not create one*/
+		var divGPanel, divGPanLoc = document.getElementById("oPlace");
+		if ($('#oDash').length) {
+		 	divGPanel = document.getElementById("oDash");
+    	} else 
+    		createPanelGroup("oPlace");
+
+    	setTimeout(processGraphs, 0);
+	};
+
+	function processGraph () {
+		if (self.cObj.gObj[i]) {
+			if (self.cObj.gObj[i].gHid) 
+				mSpa += self.cObj.gObj[i].gHt * 1.5;
+			else 
+				self.cObj.gObj[i].update(self.cObj, newData[self.cObj.gObj[i].gMAC]);
+		} else {
+			var gTitles = {mTitle: getHostName(dKey[i].toLowerCase()) + " (" + dKey[i] + ")", xTitle: "Time (HH-MM-SS)", yTitle: null},
+				gProps = { xPos: 75, yPos: 50 + (self.gSpa * i), 
+						   gWidth: null, gHeight: null, gMaxYval: null,
+						   gRows: 13, gCols: newData[dKey[i]].time.length
+						 };
+
+			var gObj;
+			switch (self.tID) {
+				case 1:
+					var gHvrTagCfgStr = 'timestamp br L="Batman Quality Score" D=0 br P="ls" L="Node Last Seen" sp T="(s)"';
+					gTitles.yTitle = "Score (0 - 255)"; gProps.gMaxYval = 260;
+					gObj = createGraph(self.cObj, gProps, gColors[i], gHvrTagCfgStr, gTitles)
+				break;
+				
+				case 2:
+					var gHvrTagCfgStr = 'timestamp br L="Signal" D=0 sp L="Noise" D=1 br P="snr" L="SNR" sp T="(dB)"';
+					gTitles.yTitle = "dB (-100 - 0)"; gProps.gMaxYval = -100; gProps.gRows = 10; 
+					gObj = createGraph(self.cObj, gProps, [gColors[i], "#f00"], gHvrTagCfgStr, gTitles)		
+				break;
+
+				case 4: 
+					var gHvrTagCfgStr = 'timestamp br L="Recieved Signal Strength Indicator" D=0 br';
+					gTitles.yTitle = setYTitles = "dB (0 - 120)"; gProps.gMaxYval = 120;
+					gObj = createGraph(self.cObj, gProps, gColors[i], gHvrTagCfgStr, gTitles)
+				break;
+			}
+			self.cObj.gObj.push(gObj);
 		}
 
 		if (++i < dCount) {
 			setTimeout(processGraph, 0);
 		} else if (self.cFlg === 0) {
-			self.cObj.setDim(self.gSpa * dCount);
-		}
+			self.cObj.setDim(self.gSpa * dCount - mSpa);
+			d.resolve();
+		} else 
+			d.resolve();
 	}
 
 	function processTable () {
@@ -611,51 +891,61 @@ oGroup.prototype.updateGroup = function (newData) {
 				});
 			}
 		}
-
+				
 		function processChannelGraphs () {
-			if (self.tObj.gLine) {
-				processLineColors();
+			if (self.gLine) {
 				self.tObj.gObj.altD = true;
+				if (self.cRef === undefined) {
+					self.tObj.processLineColors(cDta);
+					self.cRef = self.tObj.gColors;
+				} else
+					self.tObj.gColors = self.cRef;
+				self.tObj.updateRowColor();
 				self.tObj.gObj.setColor(self.tObj.gColors.cArr);
 				self.tObj.gObj.setTitles("WiFi AP Channel Information", "Channel", "Signal Strength (dBm)");				
 			} else {
-				var gColors = ["#2f69bf", "#a2bf2f", "#bf5a2f", "#bfa22f", "#772fbf", "#bf2f2f", "#00327f", "#667f00", "#7f2600", "#7f6500"];
 				self.tObj.gObj.altD = false;
+				var gColors = ["#2f69bf", "#a2bf2f", "#bf5a2f", "#bfa22f", "#772fbf", "#bf2f2f", "#00327f", "#667f00", "#7f2600", "#7f6500"];
 				self.tObj.gObj.setColor(gColors);
 				self.tObj.gObj.setTitles("WiFi AP Channel Information", "Channel", "AP #");		
 			}
 		}		
 
+
 		if (self.tObj) {
 			self.tObj.update(newData);
 		} else {
+			self.aIndex = self.aIndex === undefined ? newData.length - 1 : self.aIndex;
+			self.gLine = self.gLine === undefined ? true : self.gLine;
+
 			var tCfg = { ssid: "SSID", bssid: "BSSID", mode: "Mode", 'encryption': "Encryption", quality: "Quality", signal: "Signal", channel: "Channel" }
 				tObj = new Table (self.cObj.dDiv);
-			tObj.create(tCfg, newData);
+			tObj.create(tCfg, newData, self.aIndex);
 			self.tObj = tObj;
-			
-			var oldCvs = self.cObj.push(self.tObj.cDiv), 
-				gCols = self.tObj.gLine ? 14 : 11, gObj, cDta, tCol;
 
-			cDta = channelData(newData, newData.length - 1, self.tObj.gLine);
+			var oldCvs = self.cObj.push(self.tObj.cDiv), 
+				gCols = self.gLine ? 15 : 11, 
+				gObj, cDta;
+			
+			cDta = channelData(newData, self.aIndex, self.gLine);
 			gObj = new Graph (50, 50, 10, gCols, -100);
 			self.tObj.gObj = gObj;
 
 			processChannelGraphs();
 
-			if (self.tObj.gLine) {
+			if (self.gLine) {
 				gObj.create(self.cObj, cDta, null, null, self.cObj.pWd * 0.9, self.cObj.pHt * 0.6);
 			} else {
 				gObj.createBarGraph(self.cObj, cDta);
 			}
 
-			gObj.lastIndex = newData.length - 1;
+			gObj.lastIndex = self.aIndex;
 
-			var gSwitch = gObj.switchGraphBtn(self.tObj.gLine);
+			var gSwitch = gObj.switchGraphBtn(self.gLine);
 
 			$(gSwitch).on('switch-change', function () {
-				self.tObj.gLine = self.tObj.gLine ? false : true;
-				cDta = channelData(newData, self.tObj.gObj.lastIndex, self.tObj.gLine);
+				self.gLine = self.gLine ? false : true;
+				cDta = channelData(newData, self.aIndex, self.gLine);
 				processChannelGraphs();
 				self.tObj.gObj.barUpdate(cDta);
 				self.tObj.updateRowColor();
@@ -663,10 +953,8 @@ oGroup.prototype.updateGroup = function (newData) {
 			
 			self.cObj.cObj[oldCvs].rObj.canvas.style.display = "none";
 		}
-	}
 
-	function processCustom () {
-
+		d.resolve();
 	}
 
 	if (newData != null) { 
@@ -676,6 +964,7 @@ oGroup.prototype.updateGroup = function (newData) {
 
 		switch (this.cFlg) {
 			case 0:
+				var gColors = ['#3f72bf', '#50e7f7', '#11f4c8'], mSpa = 0;
 				this.cObj.show();
 				this.gSpa = this.cObj.pHt * 0.5 < 312 ? 312 : this.cObj.pHt * 0.5;
 				setTimeout(processGraph, 0);
@@ -686,18 +975,21 @@ oGroup.prototype.updateGroup = function (newData) {
 			break;
 
 			case 2: 
-
+				this.cObj.hide();
+				processDash();
 			break;
 
 			case 3:
 				processCustom();
 			break;
+
+			default:
+				d.resolve();
+			break;
 		}		 
+	} else {
+		d.reject();
 	}
-};
-
-oGroup.prototype.bindToGroup = function () {
-
 };
 
 oGroup.prototype.removeGroup = function () {
@@ -711,10 +1003,17 @@ oGroup.prototype.removeGroup = function () {
 		break;
 
 		case 1:
+			this.aIndex = this.tObj.gObj.lastIndex;
+			this.cRef = this.tObj.gColors;
 			this.cObj.pop();
 			this.tObj.remove();
 			this.tObj = null;
 		break;
+
+		case 2:
+			$("#oDash").remove();
+		break;
+
 	}
 };
 
@@ -729,10 +1028,12 @@ function Table (destDiv, tNav, tProps) {
 	this.tKeys = [];
 }
 
-Table.prototype.create = function (tConf, newData) {
+Table.prototype.create = function (tConf, newData, index) {
 	var tLoc = document.getElementById(this.dDiv),
 		oTbl = document.createElement("div"),
 		tHTML = document.createElement("table");
+
+	index = index === undefined ? newData.length - 1 : index;
 	
 	$(oTbl).css({"height": this.tProps.tHt == null ? "50%" : this.tProps.tHt + "px",
 				 "width": this.tProps.tWd == null ? "100%" : this.tProps.tWd + "px",
@@ -777,7 +1078,8 @@ Table.prototype.create = function (tConf, newData) {
 			$(tNav).prepend('<li value="' + key + '"><a href="#">' + this.time.day + ' ' + this.time.date + ' ' + this.time.month + ' ' + this.time.year + ' ' + this.time.time + '</a></li>');
 		});
 
-		tNav.firstChild.className = "active";
+		var cIndex = newData.length - 1 - index;
+		tNav.children[cIndex].className = "active";
 		nDiv.appendChild(tNav);
 
 		$(tNav).children().click(newData, function () {
@@ -789,21 +1091,19 @@ Table.prototype.create = function (tConf, newData) {
 			});
 			$(this).addClass('active');
 			that.update(newData, this.value);
+			if (that.gObj.altD) {
+				that.processLineColors(channelData(newData, this.value, true));
+				that.updateRowColor();
+			}
 			that.gObj.barUpdate(newData, this.value);
-			that.gLine && that.updateRowColor();
 		});
 
 		tLoc.appendChild(nDiv);
+		tNav.children[cIndex].scrollIntoView(true);
 		this.tNav = nDiv;
 	}
 
-	this.update(newData, newData.length - 1);
-};
-
-Table.prototype.remove = function () {
-	$(this.oTbl).remove();
-	$(this.cDiv).remove();
-	$(this.tNav).remove();
+	this.update(newData, index);
 };
 
 Table.prototype.update = function (newData, newIndex) {
@@ -835,8 +1135,11 @@ Table.prototype.update = function (newData, newIndex) {
 			});
 			$(this).addClass('active');
 			tObj.update(cData.tDta, this.value);
+			if (tObj.gObj.altD) {
+				tObj.processLineColors(channelData(cData.tDta, this.value, true));
+				tObj.updateRowColor();
+			}
 			tObj.gObj.barUpdate(cData.tDta, this.value);
-			tObj.gLine && tObj.updateRowColor();
 		});
 	} else {
 		var tDest = $(this.oTbl.firstChild.lastChild),
@@ -859,18 +1162,55 @@ Table.prototype.update = function (newData, newIndex) {
 	}
 };
 
+Table.prototype.processLineColors = function (cDta) {
+	var that = this;
+	if (this.gColors === undefined) {
+		this.gColors = {}, this.gColors.cArr = [];
+		$.each(cDta.aData, function (channel) {
+			$.each(this, function (bssid) {
+				var newColor = '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
+				that.gColors[bssid] = newColor;
+				that.gColors.cArr.push(newColor);
+			});
+		});
+	} else {
+		var newColorObj = {}; newColorObj.cArr = [];
+		$.each(cDta.aData, function (channel) {
+			$.each(this, function (bssid) {
+				if (that.gColors[bssid]) {
+					var oldColor = that.gColors[bssid]
+					newColorObj[bssid] = oldColor;
+					newColorObj.cArr.push(oldColor);
+				} else {
+					var newColor = '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
+					newColorObj[bssid] = newColor;
+					newColorObj.cArr.push(newColor);
+				}					
+			});
+		});
+		this.gColors = newColorObj;
+		this.gObj && this.gObj.setColor(this.gColors.cArr);
+	}
+};
+
 Table.prototype.updateRowColor = function () {
 	var tRows = $(this.oTbl.firstChild.lastChild).children(), that = this;
 	$.each(tRows, function () {
 		var ssidObj = this.children[1], bssidObj = this.children[2],
-			bssid = bssidObj.innerText,	
-			rowColor = that.gLine ? that.gColors[bssid] : '#000';
+			bssid = bssidObj.innerHTML,	
+			rowColor = that.gObj.altD ? that.gColors[bssid] : '#000';
 
-		ssidObj.style.fontWeight = that.gLine ? "900" : "normal";
-		bssidObj.style.fontWeight = that.gLine ? "900" : "normal";
+		ssidObj.style.fontWeight = that.gObj.altD ? "900" : "normal";
+		bssidObj.style.fontWeight = that.gObj.altD ? "900" : "normal";
 		ssidObj.style.color = rowColor;
 		bssidObj.style.color = rowColor;
 	});
+};
+
+Table.prototype.remove = function () {
+	$(this.oTbl).remove();
+	$(this.cDiv).remove();
+	$(this.tNav).remove();
 };
 
 
@@ -901,12 +1241,11 @@ function Graph (xPos, yPos, gRows, gCols, yMaxVal, gColor, gBdr) {
 	this.gRow = gRows;
 	this.gCol = gCols;
 	this.gMax = yMaxVal;
-	gColor = gColor === undefined ? '#'+(Math.random() * 0xFFFFFF << 0).toString(16) : gColor;
-	this.gColor = Object.prototype.toString.call(gColor) === '[object Array]' ? gColor : [gColor];
-	this.gColor.push('transparent');
+	this.processColor(gColor);
 	this.gBdr = gBdr === undefined ? 20 : gBdr;
 	this.gTtl = {tSet: false};
 	this.gUpd = false;
+	this.gHid = false;
 	this.gVis = true;
 }
 
@@ -938,17 +1277,93 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 	    return this.path(path.join(",")).attr({stroke: "#000", fill: "#333"});
 	};
 
+	// Internal function borrowed from gRaphael Source Code Here  -  https://github.com/DmitryBaranovskiy/g.raphael/blob/master/g.line.js
+	function createColumns () {
+		function snapEnds (from, to, steps) {
+			 function round(a) {
+	            return Math.abs(a - .5) < .25 ? ~~(a) + .5 : Math.round(a);
+	        }
+
+	        var f = from, t = to;
+	        if (f == t) return {from: f, to: t, power: 0};
+	        var d = (t - f) / steps, r = ~~(d), R = r, i = 0;
+	        if (r) { while (R) { i--; R = ~~(d * Math.pow(10, i)) / Math.pow(10, i); } i++; } 
+	        else {
+	            if (d == 0 || !isFinite(d)) { i = 1; } 
+	            else { while (!r) { i = i || 1; r = ~~(d * Math.pow(10, i)) / Math.pow(10, i); i++; } }
+	            i && i--;
+	        }
+	        t = round(to * Math.pow(10, i)) / Math.pow(10, i);
+	        if (t < to) { t = round((to + .5) * Math.pow(10, i)) / Math.pow(10, i); }
+	        f = round((from - (i > 0 ? 0 : .5)) * Math.pow(10, i)) / Math.pow(10, i);
+
+	        return { from: f, to: t, power: i };
+		}
+
+		var paper = rData.rObj, chart = lineGraph,
+			valuesx = xAxis, valuesy = yAxis,
+			x = that.xPos - that.gBdr/2, y = that.yPos - that.gBdr/2,
+			width = that.gWd + that.gBdr, height = that.gHt + that.gBdr, gutter = that.gBdr,
+			allx = Array.prototype.concat.apply([], valuesx), ally = Array.prototype.concat.apply([], valuesy),
+            xdim = snapEnds(Math.min.apply(Math, allx), Math.max.apply(Math, allx), valuesx[0].length - 1),
+            minx = xdim.from, maxx = xdim.to,
+            ydim = snapEnds(Math.min.apply(Math, ally), Math.max.apply(Math, ally), valuesy[0].length - 1),
+            miny = ydim.from, maxy = ydim.to,
+            kx = (width - gutter * 2) / ((maxx - minx) || 1), ky = (height - gutter * 2) / ((maxy - miny) || 1);
+
+		if (Object.prototype.toString.call(valuesx) !== '[object Array]') valuesx = [valuesx];
+		if (Object.prototype.toString.call(valuesy) !== '[object Array]') valuesy = [valuesy];
+
+        var Xs = [];
+        for (var i = 0, ii = valuesx.length; i < ii; i++) { Xs = Xs.concat(valuesx[i]) }
+        Xs.sort(function(a,b) { return a - b; });
+        var Xs2 = [], xs = [];
+        for (i = 0, ii = Xs.length; i < ii; i++) { Xs[i] != Xs[i - 1] && Xs2.push(Xs[i]) && xs.push(x + gutter + (Xs[i] - minx) * kx); }
+		Xs = Xs2; ii = Xs.length;
+
+        var cvrs = paper.set();
+        for (i = 0; i < ii; i++) {
+            var X = xs[i] - (xs[i] - (xs[i - 1] || x)) / 2, w = ((xs[i + 1] || x + width) - xs[i]) / 2 + (xs[i] - (xs[i - 1] || x)) / 2, C;
+            cvrs.push(C = paper.rect(X - 1, y, Math.max(w + 1, 1), height).attr({ stroke: "none", fill: "#000", opacity: 0 }));
+            C.values = []; C.symbols = paper.set(); C.y = []; C.x = xs[i]; C.axis = Xs[i];
+            for (var j = 0, jj = valuesy.length; j < jj; j++) {
+                Xs2 = valuesx[j] || valuesx[0];
+                for (var k = 0, kk = Xs2.length; k < kk; k++) {
+                    if (Xs2[k] == Xs[i]) { C.values.push(valuesy[j][k]); C.y.push(y + height - gutter - (valuesy[j][k] - miny) * ky); C.symbols.push(chart.symbols[j][k]); }
+                }
+            }
+        }
+
+        that.hCols = cvrs;
+	}
+
 	// Internal function to create red cross graph hide button
 	function createHideButton (gObj) {
 		var btnDiv = document.createElement("div"),
 			btnItm = document.createElement("button"),
-			btnLoc = document.getElementById(rData.dDiv);
-		btnDiv.className = "btn-group";
-		btnItm.className = "btn btn-danger";
-		btnItm.innerHTML = '<span class="glyphicon glyphicon-chevron-down" style="color:#000000;"></span>';
+			btnLoc = Object.prototype.toString.call(rData.dDiv) === '[object String]' ? document.getElementById(rData.dDiv) : rData.dDiv;
+		btnItm.className = "btn btn-danger btn-xs";
+		btnItm.innerHTML = '<span class="glyphicon glyphicon-chevron-up" style="color:#000000;"></span>';
 		btnDiv.appendChild(btnItm);
-		btnDiv.setAttribute("style", "position: absolute; top:" + ( gObj.yPos - 35 ) + "px; left:" + (gObj.gWd + gObj.xPos - 10) + "px;");
+		btnDiv.setAttribute("style", "position: absolute; top:" + ( gObj.yPos - 32.5 ) + "px; left:" + (gObj.gWd + gObj.xPos - 32.5) + "px;");
 		btnLoc.appendChild(btnDiv);
+
+		$(btnItm).click(function () {
+			if (gObj.gHid) {
+				gObj.gHid = false;
+				gObj.show();
+				this.innerHTML = '<span class="glyphicon glyphicon-chevron-up" style="color:#000000;"></span>';
+				$(this).attr("class", "btn btn-danger btn-xs");
+				rData.unshiftGraph(gObj.gMAC);
+			} else {
+				gObj.gHid = true;
+				gObj.hide();
+				this.innerHTML = '<span class="glyphicon glyphicon-chevron-down" style="color:#000000;"></span>';
+				$(this).attr("class", "btn btn-success btn-xs");
+				rData.shiftGraph(gObj.gMAC);
+			}
+		});
+
 		return btnDiv;
 	}
 
@@ -1029,8 +1444,9 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 				}
 
 				if (!altTag) {
-					var tagRot = this.axis > gObj.gCol / 2 ? 180 : 0;
-					var tag = rData.rObj.tag(this.x, this.y[0], newTagString, tagRot, 6).insertBefore(this).attr([{ fill: '#000', stroke: '#eee', 'stroke-width': 2, 'fill-opacity': .75 }, { fill: '#eee', 'fill-opacity': .8 }]);
+					var tagRot = this.axis > gObj.gCol / 2 ? 180 : 0,
+						gMatrix = gObj.gObj[0][0].matrix.split();
+					var tag = rData.rObj.tag(this.x + gMatrix.dx, this.y[0] + gMatrix.dy, newTagString, tagRot, 6).attr([{ fill: '#000', stroke: '#eee', 'stroke-width': 2, 'fill-opacity': .75 }, { fill: '#eee', 'fill-opacity': .8 }]);
 					gObj.tags.push(tag);
 				} else {
 					var tagRot = this.axis > gObj.gCol / 2 ? "left" : "right";
@@ -1047,13 +1463,14 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 			}		
 		}
 
-		lineGraph.hoverColumn(mouseOn, mouseOff);
+		!gObj.hCols && createColumns();
+		gObj.hoverColumn(mouseOn, mouseOff);
 	}
 
 	if (!this.gUpd) {
 		this.gMAC = yData.mac;
-		this.gWd  = gWidth === undefined ? (rData.pWd * 0.85 < 24*this.gCol ? 24*this.gCol : rData.pWd * 0.85) : gWidth;
-		this.gHt  = gHeight === undefined ? (rData.pHt * 0.25 < 12*this.gRow ? 12*this.gRow : rData.pHt * 0.25) : gHeight;
+		this.gWd  = gWidth === undefined || !gWidth ? (rData.pWd * 0.85 < 24*this.gCol ? 24*this.gCol : rData.pWd * 0.85) : gWidth;
+		this.gHt  = gHeight === undefined || !gHeight ? (rData.pHt * 0.25 < 12*this.gRow ? 12*this.gRow : rData.pHt * 0.25) : gHeight;
 		
 		this.createGraphTitles(rData);
 		this.gGrid = rData.rObj.drawGrid(this.xPos + (this.gBdr / 2), this.yPos + (this.gBdr / 2), this.gWd - this.gBdr, this.gHt - this.gBdr, this.gCol, this.gRow);
@@ -1063,9 +1480,8 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 	var xAxisTemp = [], xAxis = [], yAxis = []; 
 	for (var i = 0; i < this.gCol; i++) xAxisTemp[i] = i + 1;
 
-	var gShd;
+	var gShd, that = this;
 	if (this.altD) {
-		var that = this;
 		xAxisTemp.push(this.gCol + 1);
 
 		$.each(yData.aData, function (channel) {
@@ -1129,8 +1545,10 @@ Graph.prototype.create = function (rData, yData, xLabel, hTagStr, gWidth, gHeigh
 
 	if (xLabel !== undefined && Object.prototype.toString.call(xLabel) === '[object Array]') {
 		var xAxisLabels = lineGraph.axis[0].text.items;
-		for (var i = 1; i < xAxisLabels.length; i++) { if (i - 1 < xLabel.length) { xAxisLabels[i].attr({'text': xLabel[i - 1].time, transform: "T -15 10"}); xAxisLabels[i].rotate(-40); } else { xAxisLabels[i].attr({'text': ""}); } }
-		xAxisLabels[0].attr({'text': ""});
+		if (xAxisLabels.length) {
+			for (var i = 1; i < xAxisLabels.length; i++) { if (i - 1 < xLabel.length) { xAxisLabels[i].attr({'text': xLabel[i - 1].time, transform: "T -15 10"}); xAxisLabels[i].rotate(-40); } else { xAxisLabels[i].attr({'text': ""}); } }
+			xAxisLabels[0].attr({'text': ""});
+		}		
 	} else if (this.altD) {
 		var xAxisLabels = lineGraph.axis[0].text.items;
 		for (var i = 2; i < xAxisLabels.length - 2; i++) {
@@ -1199,12 +1617,11 @@ Graph.prototype.switchGraphBtn = function (aState) {
 	var bLoc = this.gCvs.dDiv,
 		bDiv = document.createElement("div"),
 		bObj = document.createElement("input");
-		bSts = aState === undefined ? false : aState;
+		bSts = aState === undefined ? true : aState;
 
-	bDiv.className = "switch switch";
-	bDiv.dataset.onLabel = "Line";	  bDiv.dataset.offLabel = "Bar";
-	bDiv.dataset.on = "warning";	  bDiv.dataset.off = "success";
+	bDiv.className = "switch";
 	bDiv.style.position = "absolute"; bDiv.style.marginLeft = "-" + this.gWd + "px";
+	$(bDiv).data({'on-label': "Line", 'off-label': "Bar", 'on': "success", 'off': "warning"});
 
 	bObj.type = "checkbox";			  bObj.id = "gChk1";
 	bDiv.appendChild(bObj);
@@ -1220,11 +1637,43 @@ Graph.prototype.switchGraphBtn = function (aState) {
 };
 
 /**
+ * ONOD Graph Class Update Graph Data Function
+ **/
+Graph.prototype.update = function (rData, newData, xLabel) {
+	xLabel = xLabel === undefined ? newData.time : xLabel;
+	if (Object.prototype.toString.call(newData.data) === '[object Object]') {
+		for (var j in newData.data) {
+			if (Object.prototype.toString.call(newData.data[j]) === '[object Array]' && this.gCol != newData.data[j].length) {
+				this.gCol = newData.data[j].length
+				this.gUpd = false;
+			} else {
+				this.gUpd = true;
+			}
+			break;
+		}		
+	} else {
+		if (this.gCol != newData.data.length) {
+			this.gCol = newData.data.length
+			this.gUpd = false;
+		} else {
+			this.gUpd = true;
+		}
+	}
+
+	var gMatrix = this.gObj[0][0].matrix.split();
+	this.xPos += gMatrix.dx; this.yPos += gMatrix.dy;
+	this.remove();
+	this.create(rData, newData, xLabel, this.gHvrTagCfgStr);
+	
+	this.gUpd = false;
+};
+
+/**
  * ONOD Graph Class Bar Graph Update Function
  **/
 Graph.prototype.barUpdate = function (newData, index) {
 	var cData;
-	if (!index) {
+	if (index === undefined) {
 		index = this.lastIndex;
 		cData = newData;
 		this.gUpd = false;
@@ -1243,6 +1692,13 @@ Graph.prototype.barUpdate = function (newData, index) {
 
 	this.lastIndex = index;
 	this.gUpd = false;
+};
+
+Graph.prototype.processColor = function (gColor) {
+	gColor = gColor === undefined || !gColor ? '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6) : gColor;
+	this.gColor = Object.prototype.toString.call(gColor) === '[object Array]' ? gColor : [gColor];
+	for (var i = 0; i < this.gColor.length; i++) if (this.gColor[i] === undefined || !this.gColor[i]) this.gColor[i] = '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
+	this.gColor.push('transparent');
 };
 
 Graph.prototype.setColor = function (newColor) {
@@ -1277,7 +1733,7 @@ Graph.prototype.createGraphTitles = function (rData, tSca) {
 		$.each(that.gTtl, function (key, item) {
 			switch (key) {
 				case "mT":
-					that.gTtlObjs.push(rData.rObj.text(that.xPos + (that.gWd / 2), that.yPos - 22.5 * tSca, item).attr({'font-family': 'Arial, Sans-Serif', 'font-size': 16, 'font-weight': 'bold'}));
+					that.gTtlObjs.push(rData.rObj.text(that.xPos + (that.gWd / 2), that.yPos - 22.5 * tSca, item).attr({'fill': '#DB9121','font-family': 'Arial, Sans-Serif', 'font-size': 16, 'font-weight': 'bold'}));
 					break;
 				case "xT":
 					that.gTtlObjs.push(rData.rObj.text(that.xPos + (that.gWd / 2), that.yPos + that.gHt + 50 * tSca, item).attr({'font-family': 'Arial, Sans-Serif', 'font-size': 16, 'font-weight': 'bold'}));
@@ -1291,11 +1747,47 @@ Graph.prototype.createGraphTitles = function (rData, tSca) {
 	}
 }
 
+Graph.prototype.hoverColumn = function (fin, fout) {
+	this.hCols && this.hCols.mouseover(fin).mouseout(fout);
+};
+
+Graph.prototype.unhoverColumn = function () {
+	if (this.hCols) {
+		this.hCols.unmouseover().mouseout();
+		this.hCols.remove();
+		this.hCols.clear();
+		this.hCols = null;
+	}
+};
+
 /**
  * ONOD Graph Class Hide Graph Function
  **/
 Graph.prototype.hide = function () {
+	this.gGrid && this.gGrid.hide();
+	this.hCols && this.hCols.hide();
+	this.gObj.hide();
+	for (var i = 0; i < this.gObj.axis.length; i++) 
+		this.gObj.axis[i].text.hide();
+	if (this.gTtl.tSet && this.gTtlObjs)
+		for (var i = 1; i < this.gTtlObjs.length; i++) {
+			this.gTtlObjs[i].hide();
+		}
+};
 
+/**
+ * ONOD Graph Class Show Graph Function
+ **/
+Graph.prototype.show = function () {
+	this.gGrid && this.gGrid.show();
+	this.hCols && this.hCols.show();
+	this.gObj.show();
+	for (var i = 0; i < this.gObj.axis.length; i++) 
+		this.gObj.axis[i].text.show();
+	if (this.gTtl.tSet && this.gTtlObjs)
+		for (var i = 1; i < this.gTtlObjs.length; i++) {
+			this.gTtlObjs[i].show();
+		}
 };
 
 /**
@@ -1304,9 +1796,8 @@ Graph.prototype.hide = function () {
 Graph.prototype.remove = function () {
 	this.tags && this.tags.remove();
 	this.bTxt && this.bTxt.remove();
-	//if (this.altD && !this.altD) this.gObj.unhover();
 	this.gObj.unhover && this.gObj.unhover();
-	this.gObj.unhoverColumn && this.gObj.unhoverColumn(); 
+	this.unhoverColumn(); 
 	this.gObj && this.gObj.remove(); 
 	this.gObj && this.gObj.clear();
 	
@@ -1320,32 +1811,27 @@ Graph.prototype.remove = function () {
 	}
 };
 
-/**
- * ONOD Graph Class Update Graph Data Function
- **/
-Graph.prototype.update = function (rData, newData, xLabel) {
-	xLabel = xLabel === undefined ? newData.time : xLabel;
-	if (Object.prototype.toString.call(newData.data) === '[object Object]') {
-		for (var i in newData.data) {
-			if (Object.prototype.toString.call(newData.data[i]) === '[object Array]' && this.gCol != newData.data[i].length) {
-				this.gCol = newData.data[i].length
-				this.gUpd = false;
-			} else {
-				this.gUpd = true;
-			}
-			break;
-		}		
-	} else {
-		if (this.gCol != newData.data.length) {
-			this.gCol = newData.data.length
-			this.gUpd = false;
-		} else {
-			this.gUpd = true;
-		}
+Graph.prototype.moveGraph = function (xDist, yDist) {
+	if (!xDist && !yDist) return;
+	var rTrStr = "...T" + xDist + "," + yDist;
+	this.tags && this.tags.transform(rTrStr);
+	this.gGrid && this.gGrid.transform(rTrStr);
+	this.hCols && this.hCols.transform(rTrStr);
+	this.gObj.transform(rTrStr);
+
+	if (this.gHideBtn) {
+		var oldBtnPosX = parseInt($(this.gHideBtn).css('left'), 10), oldBtnPosY = parseInt($(this.gHideBtn).css('top'), 10);
+		if (xDist) $(this.gHideBtn).css('left', "" + (oldBtnPosX + xDist) + "px");
+		if (yDist) $(this.gHideBtn).css( 'top', "" + (oldBtnPosY + yDist) + "px");
 	}
-	this.remove();
-	this.create(rData, newData, xLabel, this.gHvrTagCfgStr);
-	this.gUpd = false;
+
+	if (this.gTtl.tSet && this.gTtlObjs)
+		for (var i = 0; i < this.gTtlObjs.length; i++) {
+			this.gTtlObjs[i].transform(rTrStr);
+		}
+
+	for (var i = 0; i < this.gObj.axis.length; i++) 
+		this.gObj.axis[i].text.transform(rTrStr);
 };
 
 /**
@@ -1388,18 +1874,14 @@ Graph.prototype.isVis = function () {
  **/
 function Canvas (destDiv, cWd, cHt, cMgX, cMgY) {
 	this.dDiv = destDiv === undefined ? 'oPlace' : destDiv;
-	this.cMgX  = cMgX === undefined ? 237 : cMgX;
-	this.cMgY  = cMgY === undefined ? 96 : cMgY;
-	this.pWd  = cWd === undefined ? $(window).width() - this.cMgX : cWd;
-	this.pHt  = cHt === undefined ? $(window).height() - this.cMgY : cHt;
+	this.cMgX  = cMgX === undefined || !cMgX ? 237 : cMgX;
+	this.cMgY  = cMgY === undefined || !cMgY ? 96 : cMgY;
+	this.pWd  = cWd === undefined || !cWd ? $(window).width() - this.cMgX : cWd;
+	this.pHt  = cHt === undefined || !cHt ? $(window).height() - this.cMgY : cHt;
 	this.rObj = Raphael(this.dDiv, this.pWd, this.pHt);
+	this.rObj.renderfix();
 	this.gObj = [];
 	this.cObj = [];
-
-	var that = this;
-	$("#" + this.dDiv).scroll(that, function () {
-		that.onScroll();
-	});
 }
 
 /**
@@ -1412,6 +1894,7 @@ Canvas.prototype.setDim = function (cHeight, cWidth) {
 	cHeight = cHeight === undefined ? $(this.rObj.canvas).outerHeight() : cHeight;
 	cWidth = cWidth === undefined ? (this.pWd < 640 ? $(this.rObj.canvas).outerWidth() : this.pWd) : cWidth;
 	this.rObj.setSize(cWidth, cHeight);
+	$(this.rObj.canvas).parent().parent().height(this.pHt);
 	$(this.rObj.canvas).parent().height(this.pHt);
 	if (this.cObj.length) $(this.cObj[0].rObj.canvas).parent().height(this.pHt + this.cMgY - this.cObj[0].cMgY);
 };
@@ -1476,12 +1959,52 @@ Canvas.prototype.updateDim = function () {
  	}
  };
 
+ Canvas.prototype.shiftGraph = function (mac) {
+ 	var yTransform = 0, tList = [];
+
+ 	for (var i = 0; i < this.gObj.length; i++) {
+ 		if (this.gObj[i].gHid && !this.gObj[i].gTrf) {
+ 			yTransform += this.gObj[i].gHt * 1.5;
+ 			this.gObj[i].gTrf = true;
+ 			tList.push(i+1);
+ 		}
+ 	}
+
+ 	for (var i = 0; i < tList.length; i++) {
+ 		for (var j = tList[i]; j < this.gObj.length; j++) {
+ 			this.gObj[j].moveGraph(0, -yTransform);
+ 		}
+ 	}
+
+ 	this.setDim($(this.rObj.canvas).outerHeight() - yTransform, $(this.rObj.canvas).outerWidth());
+ };
+
+ Canvas.prototype.unshiftGraph = function (mac) {
+ 	var yTransform = 0, tList = [];
+
+ 	for (var i = 0; i < this.gObj.length; i++) {
+ 		if (!this.gObj[i].gHid && this.gObj[i].gTrf) {
+ 			yTransform += this.gObj[i].gHt * 1.5;
+ 			this.gObj[i].gTrf = false;
+ 			tList.push(i+1);
+ 		}
+ 	}
+
+ 	for (var i = 0; i < tList.length; i++) {
+ 		for (var j = tList[i]; j < this.gObj.length; j++) {
+ 			this.gObj[j].moveGraph(0, yTransform);
+ 		}
+ 	}
+
+ 	this.setDim($(this.rObj.canvas).outerHeight() + yTransform, $(this.rObj.canvas).outerWidth());
+ };
+
 /**
  * ONOD Canvas Class Hide Canvas Function
  * This function will use jQuery to hide this canvas if visible.
  **/
 Canvas.prototype.hide = function () {
-	if ($(this.rObj.canvas).is(":visible") ) {
+	if ($(this.rObj.canvas).is(":visible") || this.rObj.canvas.style.display != "none") {
 		$('#' + this.dDiv)[0].scrollIntoView(true);
 		$(this.rObj.canvas).hide();
 	}
@@ -1498,25 +2021,128 @@ Canvas.prototype.show = function () {
 };
 
 
+function oAnnounce (oDisp) {
+	this.mDisp = oDisp;
+	this.tID = -1;
+};
+
+oAnnounce.prototype.createNewButton = function(hname, addr, id) {
+	var btnLabel = document.createElement("label"),
+		btnLoc = document.getElementById("AnnBtn-group"),
+		self = this;
+
+	btnLabel.className = "btn btn-primary AnnBtn";
+	btnLabel.innerHTML = '<input type="radio" name="options" id="AnnBtn-' + id +'" value="'+ addr + '" >' + hname + ': ' + addr;
+	create_tooltip(btnLabel, "Warning: This will redirect your page.", "right");
+	btnLoc.appendChild(btnLabel);
+	$(btnLabel).click(function () {
+		function setHost (disp, hname) {
+			if (disp.updateHost(hname))
+				return 
+			else setTimeout(function () {
+				setHost(disp, hname);
+			}, 500);
+		}
+
+		//setHost(self.mDisp, addr);
+
+		window.location = "http://"+ addr + "/cgi-bin/vt_status.html";
+		$(this).addClass('active');
+	});
+
+	return btnLabel;
+};
+
+oAnnounce.prototype.updateGroup = function(newData, d) {
+	$("#AnnBtn-group").empty();
+
+	var i = 0, self = this;
+	$.each(newData.hosts, function(key) {
+		self.createNewButton(this.hostname, this.ipaddr, i++);
+	});
+	d.resolve();
+
+	var hostname = window.location.hostname;
+	$("input[value*='" + hostname + "']").closest('label').addClass('active');
+};
+
+function create_tooltip(location, content, direction)
+{
+	direction = typeof direction !== 'undefined' ? direction : "top";
+	$(location).tooltip({"title": content, "container": "body", "placement": direction, "trigger": "hover"});
+}
+
+function create_popover(location, content, direction)
+{
+	direction = typeof direction !== 'undefined' ? direction : "top";
+	$(location).popover({"content": content, "container": "body", "placement": direction, "trigger": "hover"});
+}
+
+function help_tips()
+{
+	create_tooltip("#config", "Logger Configuration", "left");
+	create_tooltip("#rTime", "How many times to scan.", "right");
+	create_tooltip("#sInterv", "How often to scan in seconds.\n(Recommended is 5 seconds.)", "right");
+	create_tooltip("#lLen", "How many entries in each log file.", "right");
+	create_tooltip("label[for='checkboxes-settings-cL']", "Ticking this will clear all previous logs.", "right");
+	create_tooltip("label[for='checkboxes-settings-rF']", "Logger will run until stopped.", "right");
+	create_tooltip("label[for='checkboxes-dataType-0']", "Will collect information for:\nNode Neighborhood\nNode Batman Score", "right");
+	create_tooltip("label[for='checkboxes-dataType-1']", "Will collect information for:\nNode Neighborhood\nNode Wireless S.N.R\nNode Wireless RSSI", "right");
+	create_tooltip("label[for='checkboxes-dataType-2']", "Will collect information for:\nNode Wireless Scan", "right");
+	create_tooltip("#closesettings", "Close without saving the settings.");
+	create_tooltip("#savesettings", "Will save the settings and use them the next time the logger is started.");
+	create_tooltip("#saveapplysettings", "Will save the settings and start/restart the logger.");
+	create_tooltip("#cogMenu [value='1']", "Start logger with the following settings:\nScan interval: 5\nRun time: Infinite\nLog length: 25\nTypes: Batman, Associate, Wi-Fi\nReset logs: False", "left");
+	create_tooltip("#cogMenu [value='3']", "Warning: This delete all logs.", "left");
+	
+	//create_popover("#nodeneighborhood", "Dashboard view.", "right");
+}
+
+function create_alert (location, htmlContent) {
+	function createCloseBtn (loc) {
+		var btnCAlert = document.createElement("button");
+		btnCAlert.className = "close";
+		btnCAlert.setAttribute('type', 'button');
+		btnCAlert.setAttribute('data-dismiss', 'alert');
+		btnCAlert.setAttribute('aria-hidden', 'true');
+		btnCAlert.innerHTML ='x';
+		$(loc).prepend(btnCAlert);
+	}
+
+	var divAlert = document.createElement("div");
+	var divAlertLoc = document.getElementById(location);
+	divAlert.className = "alert alert-block alert-danger fade in";
+	divAlert.id = "alert-" + $(divAlertLoc).children().length;
+	divAlert.innerHTML = htmlContent;
+	$(divAlertLoc).prepend(divAlert);
+	createCloseBtn(divAlert);
+}
+
 function oInit () {
-/**
- * new Canvas ( destDiv = ID of HTML element to contain Raphael Canvas Object (without #),
- *				cWd  = Width of canvas in pixels or percent (Default: 100%),
- *				cHt  = Height of canvas in pixels or percent (Default: 100%),
- *				cMgX = Amount of horizontal margin space to remove due to navbar (Default: 237px),
- *				cMgY = Amount of vertical margin space to remove due to header/footer (Default: 91px) );
- **/
- 	var logStorage = {};
-	var oCanvas = new Canvas ();
-	var rClass = new JSON(logStorage);
+ 	var oCanvas = new Canvas ();
+	create_alert("oAlert", "<h4>Oh snap! You got an error!</h4>");
+	
+	$("#" + oCanvas.dDiv).scroll(oCanvas, function () {
+		oCanvas.onScroll();
+	});
 	oCanvas.setDim(oCanvas.pHt - 5);
+	oCanvas.hide();
 
-	var oDash = new oGroup (oCanvas, 2, 0)
-	var oBat = new oGroup (oCanvas, 0, 1);
-	var oSNR = new oGroup (oCanvas, 0, 2);
-	var oWScan = new oGroup (oCanvas, 1, 3);
-	var oRSSI = new oGroup (oCanvas, 0, 4);
+	var oDash = new oGroup (oCanvas, 2, 0),
+		oBat = new oGroup (oCanvas, 0, 1),
+		oSNR = new oGroup (oCanvas, 0, 2),
+		oWScan = new oGroup (oCanvas, 1, 3),
+		oRSSI = new oGroup (oCanvas, 0, 4);
 
+	/* Setup the hostname Dispatcher */
+	var hRef = {
+		0 : {url: "/log/bathosts_log.json", oGrp: null}
+	}
+
+	var logStorage = {},
+		hDisp = new Dispatcher (hRef, new JSON(logStorage), 120000);
+
+	/* Setup the Log dispatcher */
 	var refList = {
 		0 : {url: ["/log/batman_log.json", "/log/assoc_log.json"], oGrp: oDash},
 		1 : {url: "/log/batman_log.json", oGrp: oBat},
@@ -1524,19 +2150,20 @@ function oInit () {
 		3 : {url: "/log/scan_log.json", oGrp: oWScan},
 		4 : {url: "/log/assoc_log.json", oGrp: oRSSI}
 	}	
-	var hRef = {
-		0 : {url: "/log/bathosts_log.json", oGrp: null}
-	}
 
-	var anRef = {
-		0 : {url: "/log/announce_log.json", oGrp: null}
-	}
-	var aDisp = new Dispatcher (anRef, new JSON(logStorage), 120000);
-	var hDisp = new Dispatcher (hRef, new JSON(logStorage), 120000);
 	var eventData = {
 		oDisp: new Dispatcher (refList, new JSON(logStorage), 5000),
 		oLua: new Lua ()
 	}
+
+	/* Setup the Announcer dispatcher */
+	var oAnn = new oAnnounce(eventData.oDisp);
+	var anRef = {
+		0 : {url: "/log/announce_log.json", oGrp: oAnn}
+	}
+
+	var aDisp = new Dispatcher (anRef, new JSON(logStorage), 120000);
+	
 
 	var rData = {oCanvas: oCanvas, oDisp: eventData.oDisp};
 	$(window).resize(rData, function () {
@@ -1544,7 +2171,7 @@ function oInit () {
 		rData.oCanvas.cRsz = setTimeout(function () {
 			rData.oCanvas.updateDim();
 			rData.oCanvas.setDim();
-			if($(rData.oCanvas.rObj.canvas).width() > 640)
+			if ($(rData.oCanvas.rObj.canvas).width() > 640)
 				if (!rData.oDisp.blockFlg) {
 					rData.oDisp.forceUpdate();
 				} else {
@@ -1556,22 +2183,16 @@ function oInit () {
 
 	$("#side li").click(eventData, function () {
 		self.uiBlockFlg == true;
-		if(!self.uiBlockFlg) {
-			if(eventData.oDisp.setActive(this.value) != null) {
+		if (!self.uiBlockFlg) {
+			if (eventData.oDisp.setActive(this.value) != null) {
 				$(this.parentElement.children).each(function() { 
 					if ($(this).hasClass('active')) {
-						$(this).removeClass('active');
+						$(this).removeClass('active');	
 					}
 				});
-
 				$(this).addClass('active');
 			}
 		}
-		function waitTimer () {	
-			self.uiBlockFlg = false;
-		}
-		setTimeout(waitTimer, 50);
-	
 	});
 
 	$("#cogMenu > li").click(eventData, function () { 
@@ -1591,8 +2212,7 @@ function oInit () {
 			case 4:
 				eventData.oDisp.stopInterv();
 				$('#myModal').modal('show');
-			break;			
-				
+			break;
 		}		
 	});
 	
@@ -1613,14 +2233,12 @@ function oInit () {
 				eventData.oLua.restart(0);
 				$('#myModal').modal('hide');
 			break;
-
 		}
 	});
 
-
 	$("input[name*='checkboxes-settings']").click(eventData, function () {
-		if(this.value == "runForever") {
-			if($(this).is(':checked')) 
+		if (this.value == "runForever") {
+			if ($(this).is(':checked')) 
 				$('#rTime').prop('disabled', true);
 			else
 				$('#rTime').prop('disabled', false);
@@ -1630,17 +2248,17 @@ function oInit () {
 	$("input[name*='checkboxes-dataType']").click(eventData, function () {
 		var i = 0;
 		$("input[name*='checkboxes-dataType']").each(function(index, Element) {
-			if($(this).is(':checked'))
+			if ($(this).is(':checked'))
 				i++;
 		});
-		if(i > 0)
+
+		if (i > 0)
 			$('.settingBut').prop('disabled', false);
 		else
 			$('.settingBut').prop('disabled', true);
 	});
 
 	$("#loggerForm").submit(eventData, function() {
-		
 		function processForm (form) {
 			var formObj = { 
 				sInterv : Number(form.sInterv.value), 
@@ -1649,23 +2267,27 @@ function oInit () {
 				rTime : $('#checkboxes-settings-rF').is(':checked') ? 0 : Number(form.rTime.value),
 				resetLog : $('#checkboxes-settings-cL').is(':checked') ? 1 : 0
 			}
+
 			$("input[name*='checkboxes-dataType']").each(function(index, Element) {
-				if($(this).is(':checked'))
+				if ($(this).is(':checked'))
 					formObj.dataTypes.push(this.value); 
 			});
 
-			if(formObj.dataTypes.length == 0) {
+			if (formObj.dataTypes.length === 0) {
 				formObj.dataTypes = null;
 			}
 		
 			console.log(formObj)
 			return formObj;
 		}
+
 		formObj = processForm(this);
 		eventData.oLua.updateLogSet(formObj.sInterv, formObj.rTime, formObj.lLen, formObj.dataTypes, formObj.resetLog);
 		return false;
 	});
-	$('.settingBut').tooltip();
+
+	help_tips();
+
 	return eventData.oDisp;
 }
 

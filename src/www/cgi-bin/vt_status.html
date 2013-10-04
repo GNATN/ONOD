@@ -12,7 +12,7 @@
 		<title>Open Node Observation Deck</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="/css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="/css/bootstrapSwitch.css" rel="stylesheet" media="screen">
 		<link href="/css/vt-bootstrap.css" rel="stylesheet" media="screen">
 	</head>
@@ -71,18 +71,24 @@
 		    	</div>
 	    	</div>
 
-			<div class="container" style="padding: 0px; margin-top: 41px;">
+			<div id="ONOD" class="container" style="padding: 0px; margin-top: 41px;">
 				<div class="row">
 					<div class="tab-pane active" id="status">
-			    		<div id="oNav" class="navbar navbar-default navbar-fixed-left">
-							<div class="collapse navbar-collapse navbar-ex1-collapse sideNav">
-								<ul id="side" class="nav navbar-nav">
-									<li value=0 class="active"><a href="#" data-toggle="side">Node Neighborhood</a></li>
-									<li value=1><a href="#" data-toggle="side">Node Batman Score</a></li>
-									<li value=2><a href="#" data-toggle="side">Node Wireless S.N.R</a></li>
-									<li value=3><a href="#" data-toggle="side">Node Wireless Scan</a></li>
-									<li value=4><a href="#" data-toggle="side">Node Wireless RSSI</a></li>
-								</ul>
+						<div id="oNav">
+				    		<div id="oNavTypes" class="navbar navbar-default navbar-fixed-left">
+								<div class="collapse navbar-collapse navbar-ex1-collapse sideNav">
+									<ul id="side" class="nav navbar-nav">
+										<li value=0 class="active"><a href="#" data-toggle="side">Node Neighborhood</a></li>
+										<li value=1><a href="#" data-toggle="side">Node Batman Score</a></li>
+										<li value=2><a href="#" data-toggle="side">Node Wireless S.N.R</a></li>
+										<li value=3><a href="#" data-toggle="side">Node Wireless Scan</a></li>
+										<li value=4><a href="#" data-toggle="side">Node Wireless RSSI</a></li>
+									</ul>
+								</div>
+							</div>
+							<div id="oNavAnn">
+								<div id="oNavAnn-Header"><label>List of Loggers</label></div>
+								<div id="AnnBtn-group" class="btn-group" data-toggle="buttons"></div>
 							</div>
 						</div>
 
@@ -96,20 +102,20 @@
 		                        	<div class="modal-body">
 		                           		<form id="loggerForm" class="form-horizontal">
 		                            		<fieldset>
-				                              	<div class="control-group">
+				                              	<div class="control-group modalshrink">
 				                                    <label class="control-label" for="rTime">Run Time</label>
 				                                    <div class="controls">
-				                                       <input type="text" id="rTime" name= "rTime" value="300">
+				                                       <input type="text" class="form-control" id="rTime" name= "rTime" value="300">
 				                                    </div>
 				                                    <label class="control-label" for="sInterv">Scan Interval</label>
 				                                    <div class="controls">
-				                                       <input type="text" id="sInterv" name="sInterv" value="5">
+				                                       <input type="text" class="form-control" id="sInterv" name="sInterv" value="5">
 				                                    </div>
 				                                    <label class="control-label" for="lLen">Log Length</label>
 				                                    <div class="controls">
-				                                    	<input type="text" id="lLen" name="lLen" value="25">
+				                                    	<input type="text" class="form-control" id="lLen" name="lLen" value="25">
 				                                    </div>
-				                                    <div class="controls">
+				                                    <div class="controls labelshrink1">
 				                                      	<label class="checkbox inline" for="checkboxes-settings-cL">
 				                                        	<input type="checkbox" name="checkboxes-settings" id="checkboxes-settings-cL" value="clearLog"> Clear Log
 				                                      	</label>
@@ -120,7 +126,7 @@
 				                              	</div>
 				                                <div class="control-group">
 				                                    <legend>Data types</legend>
-				                                    <div class="controls">
+				                                    <div class="controls labelshrink2">
 				                                    	<label class="checkbox" for="checkboxes-dataType-0">
 				                                          	<input type="checkbox" name="checkboxes-dataType" id="checkboxes-dataType-0" value="batman" checked> Batman List
 				                                    	</label>
@@ -136,14 +142,17 @@
 		                          		</form>
 		                            </div>
 		                            <div id="logSetFooter" class="modal-footer">
-		                            	<button class="btn" value="0" aria-hidden="true">Close</button>
-		                            	<button class="btn btn-primary settingBut" value="1">Save settings</button>
-		                            	<button class="btn btn-danger settingBut" value="2">Save &amp; Apply</button>
+		                            	<button class="btn" value="0" id="closesettings" aria-hidden="true">Close</button>
+		                            	<button class="btn btn-primary settingBut" id="savesettings">Save settings</button>
+		                            	<button class="btn btn-danger settingBut" id="saveapplysettings" value="2">Save &amp; Apply</button>
 		                            </div>
 	               				</div>
             				</div>
             			</div>
-						<div id="oPlace"></div>	
+            			<div id ="oContent">
+            				<div id="oAlert"></div>
+							<div id="oPlace"></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -159,7 +168,7 @@
 		<!-- Load javascript -->
 		<script type="text/javascript" src="/lib/jquery-1.7.1.js"></script>
 		<script type="text/javascript" src="/lib/jquery.validate.min.js"></script>
-		<script type="text/javascript" src="/lib/bootstrap.min.js"></script>
+		<script type="text/javascript" src="/lib/bootstrap.js"></script>
 		<script type="text/javascript" src="/lib/bootstrapSwitch.js"></script>
 		<script type="text/javascript" src="/lib/raphael-min.js"></script>
 		<script type="text/javascript" src="/lib/g.raphael-min.js"></script>

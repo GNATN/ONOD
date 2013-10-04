@@ -65,17 +65,27 @@ html, body {
 {
 
 	float: left;
+
 }
 
+.alert {
+  margin-bottom: 1px !important;
+}
 #oNav
 {
   margin-left: 0px;
   width: 220px;
   position: fixed;
   border-radius: 0px;
+  background-color: #e7e7e7;
+}
+#oPlace 
+{
+  width:100%;
+  position: relative;
 }
 
-#oPlace
+#oContent
 {
   margin-left: 220px;
 	overflow: auto;
@@ -87,6 +97,78 @@ html, body {
 #side > li > a
 {
   padding-left: 40px;
+  border-radius: 0px;
+}
+
+#oNavTypes {
+  border-radius: 0px;
+  background-color: #f8f8f8;
+  padding-bottom: 1px;
+  margin-bottom: 25px;
+}
+
+#oNavAnn {
+  border-top: 0px solid transparent;
+  border-right: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  width: 220px;
+
+  border-color: #e7e7e7;
+}
+
+#AnnBtn-group {
+  width: 216px;
+  height: 170px;
+  overflow-y: scroll;
+  background-color: white;
+
+
+}
+
+#oNavAnn-Header {
+  padding-top: 4px;
+  border-bottom: 3px;
+  background-color: #f8f8f8;
+}
+
+#oNavAnn-Header > label {
+  background-color: #f8f8f8;
+  width: 203px;
+  text-align: center;
+  color: #777777;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 20px
+}
+
+.AnnBtn:hover, .AnnBtn.active
+{
+  background-color: #E68A00;
+  border-color: #E68A00;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.AnnBtn:hover 
+{
+  background-color: #E68A00;
+  border-color: #E68A00;
+
+}
+.AnnBtn
+{
+  background-color: #ff9900;
+  border-color: #E68A00;
+  width: 199px;
+  border-radius: 0px;
+  margin-left: 0px !important;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.AnnBtn {
+  text-align: left;
+  padding-left: 20px;
 }
 
 #menu
@@ -167,6 +249,7 @@ html, body {
   margin-right: 100%;
 }
 
+
 .sideMenu > a
 {
   padding-left: 30px !important;
@@ -201,4 +284,14 @@ html, body {
 #fContent {
     margin-left: 190px;
 
+}
+
+.popover
+{
+  z-index: 4000;
+}
+
+.tooltip
+{
+  z-index: 4000;
 }
