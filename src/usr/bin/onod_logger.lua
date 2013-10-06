@@ -4,6 +4,7 @@
 --require "cmdline"
 local dev = "wlan0"
 local dev1 = "wlan0-1"
+local settings_file = "/etc/onod/logger.conf"
 local gen_log_file = "/www/log/%s_log.json"
 local gen_log_tmp = "/www/log/%s_log.tmp"
 local pid_file = "/var/run/dmtf_scan.pid"
@@ -52,7 +53,6 @@ function update_last_size(file, new_size)
 end
 
 function pool_can_write(file, current, size)
-	print("Can write: "..file.." "..current.." "..size)
 	if (current + size) < pool_sizes[file] then
 		update_last_size(file, (current + size))
 		return 0
@@ -209,10 +209,6 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 
 	local j = 0
 	while j < run_time do
-		for file, data in pairs(pool_sizes) do
-			print("Before: "..file.." "..data)
-		end
-		print("Before: remaining_pool "..remaining_pool)
 		for p, x in pairs(types) do
 			local log_file = string.format(gen_log_file, x)
 			local log_tmp = string.format(gen_log_tmp, x)
@@ -291,10 +287,6 @@ function runRoutine(seconds, run_time, max_lines, reset_file, types)
 			os.remove(log_file)
 			os.rename(log_tmp, log_file)
 		end
-		for file, data in pairs(pool_sizes) do
-			print("After: "..file.." "..data)
-		end
-		print("After: remaining_pool "..remaining_pool)
 		os.execute(string.format("sleep %s", seconds))
 		j = j + 1
 	end
@@ -410,6 +402,23 @@ else
 	os.exit(1)
 end
 
+function init_logger()
+	for l in io.lines(settings_file) do
+		local tmp = l:match("location: (.*)")
+
+		if tmp ~= nil then
+			log_file = tmp .. "%s_log.json"
+			log_tmp = tmp .. "%s_log.tmp"
+		end
+
+		tmp = l:match("file_size: (%d*)")
+
+		if tmp ~= nil then
+			max_pool_size = tonumber(tmp)
+		end
+	end
+end
+
 arguments = {
 	"-l", --Length of log
 	"-r", --Run time/loops
@@ -433,6 +442,11 @@ max_lines = tonumber(paras["-l"])
 flag = tonumber(paras["-R"])
 
 item_types = split(paras["-t"], ",") --{"assoc", "scan", "batman"}
+
+init_logger()
+
+print(log_file)
+print(max_pool_size)
 
 init_pool(item_types)
 

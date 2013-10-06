@@ -2094,6 +2094,7 @@ function help_tips()
 	create_tooltip("#saveapplysettings", "Will save the settings and start/restart the logger.");
 	create_tooltip("#cogMenu [value='1']", "Start logger with the following settings:\nScan interval: 5\nRun time: Infinite\nLog length: 25\nTypes: Batman, Associate, Wi-Fi\nReset logs: False", "left");
 	create_tooltip("#cogMenu [value='3']", "Warning: This delete all logs.", "left");
+	create_tooltip("#cogMenu [value='4']", "Modifies logger settings on the router.", "left");
 	
 	//create_popover("#nodeneighborhood", "Dashboard view.", "right");
 }

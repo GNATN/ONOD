@@ -295,3 +295,23 @@ html, body {
 {
   z-index: 4000;
 }
+
+.modalshrink
+{
+  width: 60%;
+}
+
+.labelshrink1
+{
+  width: 40%;
+}
+
+.labelshrink2
+{
+  width: 25%;
+}
+
+.tooltip-inner {
+    white-space:pre;
+    max-width:none;
+}
