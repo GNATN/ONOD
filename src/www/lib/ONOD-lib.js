@@ -773,7 +773,7 @@ oGroup.prototype.updateGroup = function (newData, d, hosts) {
 			function updateGraphs(key) {
 				var	gDta = newData[key],
 				uDta = [];
-				uDta.push(null);
+
 				if (gDta.data.bScore !== undefined) {
 					uDta.push({data: {bScore: gDta.data.bScore}, mac: key, time: gDta.time, ls: gDta.ls});
 				} else uDta.push(null); 
@@ -786,14 +786,13 @@ oGroup.prototype.updateGroup = function (newData, d, hosts) {
 					uDta.push({data: {signal: gDta.data.rssi}, mac: key, time: gDta.time, snr: gDta.snr});
 				} else uDta.push(null);
 
-				var index = 0;
+
 				for(var c in self.dCvs[key].gObj) {
 					var pClass = self.dCvs[key].dDiv.parentElement.className;
 					if (pClass.substring(pClass.length - 2, pClass.length) === "in" && ! self.dCvs[key].gObj[c].gHid) {
-						if(uDta[index] == null) continue;
-						self.dCvs[key].gObj[c].update(self.dCvs[key], uDta[index]);
+						if(uDta[c] == null) continue;
+						self.dCvs[key].gObj[c].update(self.dCvs[key], uDta[c]);
 					}
-					index++;
 				}
 			}
 			
