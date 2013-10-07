@@ -7,7 +7,7 @@ Open Node Observation Deck
 
 The Open Node Observation Deck (ONOD) is the Mesh Potato visualization tool. ONOD is a tool designed to present the status of mesh network through the use of graphs, tool tips and tables. The ONOD was developed primarily with Lua, utilizing JavaScript for the web pages. The web page communicates with the client side through JSON.
 
-As an open source project, ONDO incourages input through from Mesh Potato users and the Village Telco community as a whole. Below is a detailed look at the funcitonality and features of the ONOD. As the ONOD is an ever-growing project, this page will be subject to change.
+As an open source project, ONDO incourages input through from Mesh Potato users and the Village Telco community as a whole. Below is a detailed look at the functionality and features of the ONOD. As the ONOD is an ever-growing project, this page will be subject to change.
 
 ## Installation 
 For you guys to use this on your router will need the below packages: 
@@ -109,7 +109,6 @@ The following features are set to be included in ONOD by November 2013.
 
 - [ ] Alerts 
 - [ ] Channel Analyser graph 
-- [ ] Server-side log management (hard-constraints and cleaning)
 - [ ] More Error-handling
 
 ### Wish List
