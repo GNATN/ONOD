@@ -5,6 +5,10 @@ Open Node Observation Deck
 
 ## Introduction
 
+The Open Node Observation Deck (ONOD) is the Mesh Potato visualization tool. ONOD is a tool designed to present the status of mesh network through the use of graphs, tool tips and tables. The ONOD was developed primarily with Lua, utilizing JavaScript for the web pages. The web page communicates with the client side through JSON.
+
+As an open source project, ONDO incourages input through from Mesh Potato users and the Village Telco community as a whole. Below is a detailed look at the funcitonality and features of the ONOD. As the ONOD is an ever-growing project, this page will be subject to change.
+
 ## Installation 
 For you guys to use this on your router will need the below packages: 
 
@@ -22,8 +26,10 @@ it just needs to be restalled so the lua binds to the uhttpd server.
 
 ### Features
  
-- [x] **Bootstrap 3.0 migration**
-In this feature, we have moved completely over to the new bootstrap 3.0, and with it formalized the layout. 
+- [x] **Bootstrap 3.0**
+In this feature, we have moved completely over to the new bootstrap 3.0, and with it formalized the layout. Bootstrap 3.0 give ONOD visualization features, such as graphs, tool tips and dynamic tab toggeling.
+
+All pages on the ONOD utilize Bootstrap 3.0 for a streamlined, more appaling user interface.
 ![bt3 0](https://f.cloud.github.com/assets/5070464/1187716/89906304-2394-11e3-8d4b-41dca1158303.PNG)
 <p align="center">
  <img src="https://f.cloud.github.com/assets/5070464/1187771/1c402308-2398-11e3-9c60-0fb8233c8392.PNG"/>
@@ -98,24 +104,19 @@ With this build we hunted and killed many bugs and have placed some error handli
 - [ ] Sorting graphs by a metric 
 
 ### TODO 
+The following features are set to be included in ONOD by November 2013.
 
-- [ ] Section to allow to you switch between nodes that are running the logging tool 
-- [ ] Tooltips
 - [ ] Alerts 
-- [ ] Informational Text
 - [ ] Channel Analyser graph 
 - [ ] Server-side log management (hard-constraints and cleaning)
 - [ ] More Error-handling
-- [ ] store logs on external device 
 
 ### Wish List
 These features that may not be finished and are not critical to the project's success.
 
-* Tab for Packet Loss 
 * Node Lag Graph
 * Link Quantity Graph
 * Hop Penalty and the OGM interval in the footer 
-* Minstrel log
 
 ### Log Files
 These are the formate examples of the the log file s that we currently use. These are currently subject to change, and there may be additional logs added in the future
@@ -162,3 +163,5 @@ These are the formate examples of the the log file s that we currently use. Thes
 ```
 
 ## Please Give Feedback
+
+Feedback can be provided though the Village Telco Forums.
