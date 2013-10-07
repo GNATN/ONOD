@@ -32,6 +32,9 @@ In this feature, we have moved completely over to the new bootstrap 3.0, and wit
 <p align="center">
  <img src="https://f.cloud.github.com/assets/5070464/1187771/1c402308-2398-11e3-9c60-0fb8233c8392.PNG"/>
 </p>
+<p align="center">
+ <img src="https://f.cloud.github.com/assets/5070464/1276264/a35dab2c-2e50-11e3-8364-ff8a87caca72.PNG"/>
+</p>
 - [x] **Node Wireless Scan Page**
 With this build we have introduced a new tab! This tab will allow users to view wireless Scan snapshots of their node's wireless environment
 ![wscan](https://f.cloud.github.com/assets/5070464/1187765/7b741768-2397-11e3-8090-d6da970ce0fc.PNG)
