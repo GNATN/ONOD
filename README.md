@@ -27,9 +27,7 @@ it just needs to be restalled so the lua binds to the uhttpd server.
 ### Features
  
 - [x] **Bootstrap 3.0**
-In this feature, we have moved completely over to the new bootstrap 3.0, and with it formalized the layout. Bootstrap 3.0 give ONOD visualization features, such as graphs, tool tips and dynamic tab toggeling.
-
-All pages on the ONOD utilize Bootstrap 3.0 for a streamlined, more appaling user interface.
+In this feature, we have moved completely over to the new bootstrap 3.0, and with it formalized the layout. Bootstrap 3.0 give ONOD visualization features, such as graphs, tool tips and dynamic tab toggeling. All pages on the ONOD utilize Bootstrap 3.0 for a streamlined, more appaling user interface.
 ![bt3 0](https://f.cloud.github.com/assets/5070464/1187716/89906304-2394-11e3-8d4b-41dca1158303.PNG)
 <p align="center">
  <img src="https://f.cloud.github.com/assets/5070464/1187771/1c402308-2398-11e3-9c60-0fb8233c8392.PNG"/>
